@@ -1,0 +1,316 @@
+---
+title: ".b[Course Logistics]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+class: middle, center, inverse
+
+.huge[.huge[.huge[.b[Hello!]]]]
+
+
+
+---
+class: middle, center, inverse
+
+
+.huge[.b[Marcio Santetti, Ph.D. (*he/him*)]]
+
+<br>
+
+<img style="border-radius: 30%;" src="ms.jpg" width="150px"/>
+
+
+
+[`r fontawesome::fa("envelope")` msantetti@skidmore.edu](mailto:msantetti@skidmore.edu)
+
+---
+layout: false
+class: inverse, middle
+
+# Motivation
+
+---
+
+
+# Warning
+
+<br><br><br>
+
+.pull-left[
+
+Learning this course's material may .hi[irreversibly] change the way you approach your own interests, and this fact may make it impossible to maintain your *current beliefs*.
+
+]
+
+.pull-right[
+
+The learning journey may be very *stressful*, especially if you are not used to being .red[*frustrated].* 
+]
+
+---
+class: inverse, middle
+
+# Computer stuff
+
+---
+
+# About .mono[R]
+
+This course will use .mono[R] for its applied lectures.
+
+--
+
+No previous knowledge in .mono[R] is required.
+
+  - But in case you have .hi[no] experience with it, there is a .hi-slate[learning curve] ahead.
+  - Make sure to have the most .b[up-do-date] version of .mono[R] (`4.2.2` or above).
+  
+--
+
+<br><br>
+
+
+Therefore, be *humble* and *patient* with yourself.
+
+--
+
+<br><br>
+
+The next slide brings some .hi[useful resources].
+
+
+---
+
+# About .mono[R]
+
+<br>
+
+- [`R for Data Science (2e)`](https://r4ds.hadley.nz/), by H. Wickham, M. Çetinkaya-Rundel, and G. Grolemund
+
+  - Work through its first section (chapters 1&mdash;8) to familiarize yourself with the `tidyverse`.
+  
+--
+
+<br>
+
+- [`Playlist with video lectures on R and the tidyverse`](https://github.com/marciosantetti/ec361-sp24/blob/main/README.md#r-basics), by yours truly, Prof. Santetti
+
+  - Take your time and watch the videos at your own pace.
+
+
+
+--
+
+<br>
+
+As a final word of .hi-red[advice], if you are not willing to go over the .hi-slate[discomfort] of learning new things, this course may .red[*not*] be compatible with your goals.
+
+
+---
+class: inverse, middle
+
+# What can be forecast?
+
+
+---
+
+# What can be forecast?
+
+Some "forecasts" made in the past:
+
+--
+
+  - "*I think there is a world market for maybe five computers*." (Chairman of IBM, 1943);
+  
+  - "*Computers in the future may weigh no more than 1.5 tons*." (Popular Mechanics, 1949);
+  
+  - "*There is no reason anyone would want a computer in their home*." (President, DEC, 1977).
+
+--
+
+
+Despite the .red[*difficulties*] inherent to forecasting, this course will focus on the .hi[most reliable] methods for producing forecasts.
+
+--
+
+Our interest is on methods that:
+
+  1. Are .green[*testable*];
+  2. Are .green[*reproducible*];
+  3. Have been .green[*shown to work*].
+
+
+
+---
+
+# What can be forecast?
+
+As a mental exercise, think about the following events:
+
+- Maximum temperature tomorrow;
+- Time of sunset this day next year;
+- Daily electricity demand in 3 days;
+- Apple stock price tomorrow;
+- The US/Euro exchange rate in 6 months.
+
+--
+
+<br>
+
+Try to order these events in terms of .hi[forecasting difficulty] (from *easiest* to *hardest*).
+
+
+---
+
+# What can be forecast?
+
+Some events are easier to forecast than others.
+
+--
+
+What determines such "easiness" depends on a few .hi[factors]:
+
+.b[1]. How *well* we understand the factors that contribute to it;
+
+.b[2]. How much data is *available*;
+
+.b[3]. How *similar* the future is to the past;
+
+.b[4]. Whether the forecasts can *affect* the thing we are trying to forecast.
+
+
+
+---
+class: inverse, middle
+
+# What isn't forecasting?
+
+
+---
+
+# What isn't forecasting?
+
+
+Many times, someone may say they are forecasting something, but in fact they are not.
+
+--
+
+At this time, it is important to distinguish between .hi[forecasting], .hi-red[setting goals], and .hi-slate[planning] activities.
+
+--
+
+- .hi[Forecasting] involves predicting the future as .green[*accurately*] as possible, given all of the information available.
+  - That includes using *historical* *data* and *knowledge* of any future events that might impact the forecasts. 
+
+
+--
+
+- .hi-red[Setting goals] involve thinking about what you *would like* to have happened.
+  - Too often, goals are set *without* any plan for how to achieve them.
+
+
+
+--
+
+- .hi-slate[Planning] is a *response* to forecasts and goals.
+  - It involves determining the appropriate actions that are required to make your forecasts match your goals.
+  
+---
+class: inverse, middle
+
+# Final words
+
+
+---
+
+# Final words
+
+Now that we have touched on basic course logistics and basic concepts, a few .hi-slate[final words]:
+
+--
+
+<br>
+
+- Take this course *seriously* and with *patience*;
+
+--
+
+- Accept the inherent *discomfort* that learning new things entails;
+
+--
+
+- Be *organized* with your course materials and, especially, with data files and .mono[R] scripts;
+
+--
+
+- The skills learned in this course can be *directly applied* in your future job(s) after graduating.
+
+
+
+--
+
+<br><br>
+
+.right[...and .hi[have fun]!]
+  
+---
+layout: false
+class: inverse, middle
+
+# Next time: Forecasting methods and steps
+
+---
+exclude: true
+
+
+
+
+
