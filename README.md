@@ -8,7 +8,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
-  - [361&mdash;001 Syllabus]()
+  - [EC 361&mdash;001 Syllabus]()
 
 <br>
 
