@@ -46,7 +46,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
   - [`Video lecture`](https://youtu.be/z5ON3xXREiA)
   
 
-**0044**: The "grammar of graphics"
+**004**: The "grammar of graphics"
   
    - Slides: [`html`](https://raw.githack.com/marciosantetti/ec103-sp23/main/lab/004-graphics/004-ggraphics.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec103-sp23/main/lab/004-graphics/004-graphics.pdf)
    - [`Video lecture`](https://www.youtube.com/watch?v=u2DRXvWXAPQ&ab_channel=MarcioSantetti)
@@ -64,7 +64,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
    - Data: [`lab6_data.csv`](https://raw.githack.com/marciosantetti/ec103-fall22/main/lab/006-custom-plots/lab6_data.csv) | Data can also be downloaded on `theSpring`
    - [`Video lecture`](https://youtu.be/HMc9_Zumfa4)
    
- **0077**: Dealing with dates
+ **007**: Dealing with dates
  
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec103-sp23/main/lab/007-dates/007-dates.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec103-sp23/main/lab/007-dates/007-dates.pdf)
   - [`Video lecture`](https://youtu.be/h0jWmgYe3zI)
