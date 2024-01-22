@@ -23,6 +23,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 **001: Course Logistics**
 
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/001-logistics/001-logistics.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/001-logistics/001-logistics.pdf)
+      - [`Video lecture`]()
 
 <br>
 
