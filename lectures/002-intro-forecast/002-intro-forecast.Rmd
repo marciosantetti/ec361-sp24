@@ -1,0 +1,397 @@
+---
+title: ".b[Forecasting methods and steps]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+  - [`Hyndman & Athanasopoulos, ch. 1`](https://otexts.com/fpp3/data-methods.html)
+  
+    - Sections 1.4&mdash;1.6.
+
+
+---
+class: inverse, middle
+
+# Forecasting methods
+
+---
+
+# Forecasting methods
+
+A proper forecasting exercise is heavily dependent on .hi[good-quality data].
+
+--
+
+  - The *more* data, the *better.*
+  
+
+--
+
+<br>
+
+We will mostly focus on the so-called .hi[quantitative prediction] methods, where:
+
+  1. .green[*Numerical*/*quantitative*] information on the variable(s) of interest is available;
+  2. We can assume that .green[*past*] observations/patterns of such data will continue in the future.
+
+
+--
+
+For these two reasons, *quantitative forecasting* is mostly applicable to .hi-slate[time-series] data (i.e., data collected at *regular* *intervals* over time).
+
+  - *Yearly, hourly, quarterly, weekly*...
+  
+  
+---
+
+# Forecasting methods
+
+
+<br>
+
+In addition to quantitative methods, .hi-red[qualitative] forecasting may be applied if 
+
+  1. There are .green[*no*] data available;
+  2. The available data are .green[*not important*] to the forecast process.
+
+
+--
+
+<br>
+
+Such procedures fall into the realm of .hi-slate[judgmental forecasts], which we will cover if time allows.
+
+
+---
+class: inverse, middle
+
+# Quantitative forecasting
+
+---
+
+# Quantitative forecasting
+
+Focusing on .hi-slate[quantitative] forecasting practices, our course will only pay attention to .hi-red[regular time-series data].
+
+--
+
+  - This means that we will work *only* with data that are observed .hi[sequentially] over time .hi[at regular intervals].
+  
+
+--
+
+<br>
+
+[`US Unemployment rate`](https://fred.stlouisfed.org/series/UNRATE)
+
+
+[`US Real Gross Domestic Product`](https://fred.stlouisfed.org/series/GDPC1)
+
+
+[`US Federal Funds rate`](https://fred.stlouisfed.org/series/DFF)
+
+
+
+---
+
+# Quantitative forecasting
+
+When forecasting time series data, the aim is to estimate *how the sequence of observations will continue into the future*.
+
+--
+
+This .hi[simplest] way to go about this estimation is to use .hi-slate[only] information on the variable to be forecast, and make no attempt to discover the .hi-red[factors] that affect its behavior.
+
+--
+
+<br>
+
+In this case, .hi-slate[trend] and .hi-slate[seasonal] patterns are crucial for good forecasts. 
+
+--
+
+Therefore, using so-called .hi[decomposition] methods will be our starting point for forecasting.
+
+  - Exponential smoothing;
+  
+  - ARIMA models.
+
+
+
+
+---
+
+# Quantitative forecasting
+
+However, factors .hi-red[external] to the variable we wish to forecast may also influence its future observations.
+
+--
+
+Thus, forecasting exercises may also benefit from using .hi-red[predictor] variables.
+
+--
+
+<br>
+
+As an example, suppose we wish to forecast .hi-slate[aggregate consumption], and we know that it may be a .hi[function] of other factors, such as
+
+  - Disposable Income;
+  - Interest rates.
+
+
+--
+
+<br>
+
+$$
+\begin{aligned}
+\text{Consumption} = f(\text{Disposable Income}, \text{Interest rates})
+\end{aligned}
+$$
+
+---
+
+# Quantitative forecasting
+
+One .hi-slate[issue] is that such relationships are not .hi-red[exact].
+
+--
+
+Some changes in aggregate consumption may .hi-slate[not] be due to changes in the itself and the two other variables we listed.
+
+--
+
+Therefore, any additional .hi[random variation] in the behavior of a time series that the model does not capture is left to an element we label as .hi-red[error term].
+
+<br>
+
+--
+
+$$
+\begin{aligned}
+\text{Consumption}_{t+1} = f(\text{Consumption}_{t}, \text{Consumption}_{t-1}, \text{Disposable Income}_{t-1}, \text{Interest rates}_{t}, \text{error})
+\end{aligned}
+$$
+
+
+--
+
+<br>
+
+Such .hi[mixed models] will be studied in the form of *dynamic regression models* later on.
+
+
+---
+
+class: inverse, middle
+
+# The necessary steps
+
+---
+
+# The necessary steps
+
+Now that we know some different categories of forecasting methods, we move on to the necessary .hi-red[steps] for a successful forecasting exercise.
+
+--
+
+<br>
+
+They are the following:
+
+1. Problem *definition*;
+
+2. *Collecting* information;
+
+3. *Exploratory* analysis;
+
+4. *Choosing* and *fitting* models;
+
+5. *Applying* and *evaluating* forecasting models.
+
+
+---
+
+# The necessary steps
+
+.b[(1) Problem definition]:
+
+<br>
+
+--
+
+The .hi-red[most difficult] part!
+
+--
+
+<br>
+
+What?
+
+Who?
+
+Why?
+
+
+---
+
+# The necessary steps
+
+.b[(2) Collecting information]:
+
+--
+
+<br>
+
+Relies on the existence of
+
+  - *Statistical* data;
+  
+  - *Expertise* in data collection and forecasting.
+
+
+---
+
+# The necessary steps
+
+.b[(3) Exploratory analysis]:
+
+--
+
+<br>
+
+.hi-slate[Graphing] the data is .hi-red[crucial], as it allows us to observe:
+
+  - Consistent *patterns*;
+  
+  - *Trends*;
+  
+  - Do the data change in a *seasonal* way?
+  
+  - Are there *business cycles*?
+  
+  - *Outliers*?
+  
+  - Are *relationships* useful and existing?
+
+---
+
+# The necessary steps
+
+.b[(4) Choosing and fitting models]:
+
+--
+
+<br>
+
+It is common to .hi-slate[compare] different potential models to be used.
+
+--
+
+Each model is itself an .hi-red[artificial construct] that is based on a set of *assumptions* (explicit and implicit) and usually involves one or more parameters which must be estimated using the known historical data.
+
+---
+
+# The necessary steps
+
+.b[(5) Applying and evaluating models]:
+
+--
+
+<br>
+
+After a model is selected and estimated, its performance can .hi-slate[only] be properly evaluated after the data for the forecast period have become available.
+
+--
+
+However, several .hi[techniques] have been developed to help in assessing the .hi-red[accuracy] of forecasts.
+
+
+---
+
+# The necessary steps
+
+
+<br>
+
+For our course purposes, we will assume that steps .b[(1)] and .b[(2)] have been taken care of.
+
+--
+
+<br>
+
+Thus, we will start next week by doing .hi-red[exploratory analysis], then moving on to steps .b[(4)] and .b[(5)].
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Time series graphics
+
+---
+exclude: true
+
+
+
+
+

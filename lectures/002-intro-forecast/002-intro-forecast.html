@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Forecasting methods and steps]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="002-intro-forecast_files/header-attrs/header-attrs.js"></script>
+    <link href="002-intro-forecast_files/remark-css/default.css" rel="stylesheet" />
+    <link href="002-intro-forecast_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="002-intro-forecast_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Forecasting methods and steps]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 1`](https://otexts.com/fpp3/data-methods.html)
+  
+    - Sections 1.4&amp;mdash;1.6.
+
+
+---
+class: inverse, middle
+
+# Forecasting methods
+
+---
+
+# Forecasting methods
+
+A proper forecasting exercise is heavily dependent on .hi[good-quality data].
+
+--
+
+  - The *more* data, the *better.*
+  
+
+--
+
+&lt;br&gt;
+
+We will mostly focus on the so-called .hi[quantitative prediction] methods, where:
+
+  1. .green[*Numerical*/*quantitative*] information on the variable(s) of interest is available;
+  2. We can assume that .green[*past*] observations/patterns of such data will continue in the future.
+
+
+--
+
+For these two reasons, *quantitative forecasting* is mostly applicable to .hi-slate[time-series] data (i.e., data collected at *regular* *intervals* over time).
+
+  - *Yearly, hourly, quarterly, weekly*...
+  
+  
+---
+
+# Forecasting methods
+
+
+&lt;br&gt;
+
+In addition to quantitative methods, .hi-red[qualitative] forecasting may be applied if 
+
+  1. There are .green[*no*] data available;
+  2. The available data are .green[*not important*] to the forecast process.
+
+
+--
+
+&lt;br&gt;
+
+Such procedures fall into the realm of .hi-slate[judgmental forecasts], which we will cover if time allows.
+
+
+---
+class: inverse, middle
+
+# Quantitative forecasting
+
+---
+
+# Quantitative forecasting
+
+Focusing on .hi-slate[quantitative] forecasting practices, our course will only pay attention to .hi-red[regular time-series data].
+
+--
+
+  - This means that we will work *only* with data that are observed .hi[sequentially] over time .hi[at regular intervals].
+  
+
+--
+
+&lt;br&gt;
+
+[`US Unemployment rate`](https://fred.stlouisfed.org/series/UNRATE)
+
+
+[`US Real Gross Domestic Product`](https://fred.stlouisfed.org/series/GDPC1)
+
+
+[`US Federal Funds rate`](https://fred.stlouisfed.org/series/DFF)
+
+
+
+---
+
+# Quantitative forecasting
+
+When forecasting time series data, the aim is to estimate *how the sequence of observations will continue into the future*.
+
+--
+
+This .hi[simplest] way to go about this estimation is to use .hi-slate[only] information on the variable to be forecast, and make no attempt to discover the .hi-red[factors] that affect its behavior.
+
+--
+
+&lt;br&gt;
+
+In this case, .hi-slate[trend] and .hi-slate[seasonal] patterns are crucial for good forecasts. 
+
+--
+
+Therefore, using so-called .hi[decomposition] methods will be our starting point for forecasting.
+
+  - Exponential smoothing;
+  
+  - ARIMA models.
+
+
+
+
+---
+
+# Quantitative forecasting
+
+However, factors .hi-red[external] to the variable we wish to forecast may also influence its future observations.
+
+--
+
+Thus, forecasting exercises may also benefit from using .hi-red[predictor] variables.
+
+--
+
+&lt;br&gt;
+
+As an example, suppose we wish to forecast .hi-slate[aggregate consumption], and we know that it may be a .hi[function] of other factors, such as
+
+  - Disposable Income;
+  - Interest rates.
+
+
+--
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{Consumption} = f(\text{Disposable Income}, \text{Interest rates})
+\end{aligned}`
+$$
+
+---
+
+# Quantitative forecasting
+
+One .hi-slate[issue] is that such relationships are not .hi-red[exact].
+
+--
+
+Some changes in aggregate consumption may .hi-slate[not] be due to changes in the itself and the two other variables we listed.
+
+--
+
+Therefore, any additional .hi[random variation] in the behavior of a time series that the model does not capture is left to an element we label as .hi-red[error term].
+
+&lt;br&gt;
+
+--
+
+$$
+`\begin{aligned}
+\text{Consumption}_{t+1} = f(\text{Consumption}_{t}, \text{Consumption}_{t-1}, \text{Disposable Income}_{t-1}, \text{Interest rates}_{t}, \text{error})
+\end{aligned}`
+$$
+
+
+--
+
+&lt;br&gt;
+
+Such .hi[mixed models] will be studied in the form of *dynamic regression models* later on.
+
+
+---
+
+class: inverse, middle
+
+# The necessary steps
+
+---
+
+# The necessary steps
+
+Now that we know some different categories of forecasting methods, we move on to the necessary .hi-red[steps] for a successful forecasting exercise.
+
+--
+
+&lt;br&gt;
+
+They are the following:
+
+1. Problem *definition*;
+
+2. *Collecting* information;
+
+3. *Exploratory* analysis;
+
+4. *Choosing* and *fitting* models;
+
+5. *Applying* and *evaluating* forecasting models.
+
+
+---
+
+# The necessary steps
+
+.b[(1) Problem definition]:
+
+&lt;br&gt;
+
+--
+
+The .hi-red[most difficult] part!
+
+--
+
+&lt;br&gt;
+
+What?
+
+Who?
+
+Why?
+
+
+---
+
+# The necessary steps
+
+.b[(2) Collecting information]:
+
+--
+
+&lt;br&gt;
+
+Relies on the existence of
+
+  - *Statistical* data;
+  
+  - *Expertise* in data collection and forecasting.
+
+
+---
+
+# The necessary steps
+
+.b[(3) Exploratory analysis]:
+
+--
+
+&lt;br&gt;
+
+.hi-slate[Graphing] the data is .hi-red[crucial], as it allows us to observe:
+
+  - Consistent *patterns*;
+  
+  - *Trends*;
+  
+  - Do the data change in a *seasonal* way?
+  
+  - Are there *business cycles*?
+  
+  - *Outliers*?
+  
+  - Are *relationships* useful and existing?
+
+---
+
+# The necessary steps
+
+.b[(4) Choosing and fitting models]:
+
+--
+
+&lt;br&gt;
+
+It is common to .hi-slate[compare] different potential models to be used.
+
+--
+
+Each model is itself an .hi-red[artificial construct] that is based on a set of *assumptions* (explicit and implicit) and usually involves one or more parameters which must be estimated using the known historical data.
+
+---
+
+# The necessary steps
+
+.b[(5) Applying and evaluating models]:
+
+--
+
+&lt;br&gt;
+
+After a model is selected and estimated, its performance can .hi-slate[only] be properly evaluated after the data for the forecast period have become available.
+
+--
+
+However, several .hi[techniques] have been developed to help in assessing the .hi-red[accuracy] of forecasts.
+
+
+---
+
+# The necessary steps
+
+
+&lt;br&gt;
+
+For our course purposes, we will assume that steps .b[(1)] and .b[(2)] have been taken care of.
+
+--
+
+&lt;br&gt;
+
+Thus, we will start next week by doing .hi-red[exploratory analysis], then moving on to steps .b[(4)] and .b[(5)].
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Time series graphics
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
