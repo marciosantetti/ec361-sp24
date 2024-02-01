@@ -27,6 +27,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**002: Forecasting methods and steps**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/002-intro-forecast/002-intro-forecast.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/002-intro-forecast/002-intro-forecast.pdf)
+
+
+<br>
 
 
 ## Problem Sets
