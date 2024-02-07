@@ -1,0 +1,580 @@
+---
+title: ".b[Time series visualization techniques I]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+  - [`Hyndman & Athanasopoulos, ch. 2`](https://otexts.com/fpp3/graphics.html)
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+Many times, a single .hi-slate[picture] informs more than *1,000 words*.
+
+--
+
+<br>
+
+For instance, we can spend several minutes discussing about the ups and downs of the U.S. .hi-red[unemployment rate] over time.
+
+--
+
+<br>
+
+While words are indeed *needed* and *informative*, a .hi-slate[graph] can do the same in a more .hi-slate[efficient] way.
+
+---
+
+# Motivation
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+unrate <- read_csv("unrate.csv") |> 
+  clean_names()
+
+
+unrate |> 
+  ggplot(aes(x = date, y = unrate)) +
+  geom_line(linewidth = 0.5, color = "#33725f") +
+  #geom_point(color = blue) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%b %Y") +
+  scale_y_continuous(breaks = seq(0, 15, 2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  labs(title = "U.S. Civilian unemployment rate",
+       subtitle = "Jan 1948 – Dec 2023",
+       y = "",
+       x = "",
+       caption = "Source: U.S. Bureau of Labor Statistics.")
+
+
+
+
+```
+
+
+---
+
+# Motivation
+
+The .hi-slate[first] thing to do in any data analysis task is to .hi-red[plot the data].
+
+--
+
+<br>
+
+Graphs enable many .hi[features] of the data to be visualized:
+
+  - *Patterns*;
+  
+  - Unusual observations (i.e., *outliers*);
+  
+  - *Changes* over time;
+  
+  - *Relationships* between variables.
+
+--
+
+
+The reason .hi-slate[why] we should graph our data is that these features must then be .hi-red[incorporated], as much as possible, into the forecasting methods to be used.
+
+---
+class: inverse, middle
+
+# Time plots
+
+
+---
+
+# Time plots
+
+
+<br><br>
+
+The most .hi-red[obvious] place to start is by graphing the variable(s) *over time*.
+
+--
+
+
+<br><br>
+
+.hi-slate[Time plots] display data points against the time of observation, with consecutive observations joined by *straight lines*. 
+
+
+
+---
+
+# Time plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+cpi <- read_csv("CPILFESL.csv") |> 
+  clean_names()
+
+
+cpi |> 
+  ggplot(aes(x = date, y = cpilfesl_pc1)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(0,18,2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%b %Y") +
+  labs(title = "U.S. inflation rate: Core CPI",
+       subtitle = "Jan 1958 – Dec 2023",
+       caption =  "Source: U.S. Bureau of Labor Statistics.",
+       y = "Change from a year ago",
+       x = "")
+
+```
+
+
+---
+
+# Time plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+cpi <- read_csv("CPILFESL.csv") |> 
+  clean_names()
+
+
+cpi |> 
+  ggplot(aes(x = date, y = cpilfesl_pc1)) +
+  geom_line(linewidth = 0.5) +
+  scale_y_continuous(breaks = seq(0,18,2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%b %Y") +
+  labs(title = "U.S. inflation rate: Core CPI",
+       subtitle = "Jan 1958 – Dec 2023",
+       caption =  "Source: U.S. Bureau of Labor Statistics.",
+       y = "Change from a year ago",
+       x = "")
+
+```
+
+---
+
+# Time plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+cpi <- read_csv("CPILFESL.csv") |> 
+  clean_names()
+
+
+cpi |> 
+  ggplot(aes(x = date, y = cpilfesl_pc1)) +
+  geom_line(linewidth = 0.5) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(0,18,2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%b %Y") +
+  labs(title = "U.S. inflation rate: Core CPI",
+       subtitle = "Jan 1958 – Dec 2023",
+       caption =  "Source: U.S. Bureau of Labor Statistics.",
+       y = "Change from a year ago",
+       x = "")
+
+```
+
+
+
+---
+
+# Time plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+air <- read_csv("https://raw.githubusercontent.com/selva86/datasets/master/AirPassengers.csv")
+
+
+air |> 
+  #mutate(date = yearmonth(date)) |> 
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  scale_x_date(date_breaks = "2 years", date_labels = "%b %Y") +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands")
+
+
+```
+
+
+---
+class: inverse, middle
+
+
+# Time series patterns
+
+---
+
+# Time series patterns
+
+Many time series have important .hi-slate[features], which should be taken into account when the aim is to *predict* future values.
+
+--
+
+The first is the .hi-red[trend].
+
+--
+
+
+
+  - Is there a *long-run* increase/decrease in the data?
+  - If so, such behavior might be .hi[linear] or not.
+  
+--
+
+The second is a series' .hi-blue[seasonal] component.
+
+--
+
+  - Is the series affected by *seasonal factors* (e.g., time of the year, day of the week, hour of the day?)
+  
+--
+
+Lastly, many time series show .hi-red[cyclic] behavior.
+
+--
+
+  - Cycles occur when the data exhibit *rises and falls* that are not of a *fixed frequency*. 
+
+---
+
+# Time series patterns
+
+We should clearly .hi-blue[distinguish] between .hi-red[seasonality] and .hi[cycles].
+
+--
+
+While .hi-red[seasonal] patterns are *unchanging* and associated with some aspect of the *calendar*, .hi[cycles] do not have a *fixed* frequency and tend to have a longer average *length* than seasonality.
+
+--
+
+<br>
+
+A time series may have *all* three components, while others might have *two*, just *one*, or no visible pattern *at all*.
+
+--
+
+<br>
+
+When .hi-blue[choosing] a forecasting method, we will first need to *identify* the time series patterns in the data, and then choose a method that is able to capture the patterns properly.
+
+
+
+---
+
+# Time series patterns
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+air <- read_csv("https://raw.githubusercontent.com/selva86/datasets/master/AirPassengers.csv")
+
+
+air |> 
+  #mutate(date = yearmonth(date)) |> 
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  scale_x_date(date_breaks = "2 years", date_labels = "%b %Y") +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands")
+
+
+```
+
+
+---
+
+# Time series patterns
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+tbill <- read_csv("TB3MS.csv") |> 
+  clean_names()
+
+
+tbill |> 
+  mutate(tb3ms = as.double(tb3ms)) |> 
+  filter(date >= "1970-01-01") |> 
+  ggplot(aes(x = date, y = tb3ms)) +
+  geom_line(linewidth = 0.5) +
+  scale_x_yearquarter(breaks = "5 years") +
+  scale_y_continuous(breaks = seq(0, 175.5, 2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  labs(title = "U.S. 3-month Treasury Bill market rate",
+       subtitle = "1970Q1–2023Q4",
+       x = "",
+       y = "",
+       caption = "Source: U.S. Federal Reserve System.")
+
+
+```
+
+---
+class: inverse, middle
+
+# Seasonal plots
+
+---
+
+# Seasonal plots
+
+For time series with strong .hi[seasonal] behavior, .hi-red[seasonal plots] allow for better visualizing the underlying *seasonal pattern*.
+
+--
+
+<br>
+
+In this kind of plot, data points are plotted against the *season* in which they are observed.
+
+--
+
+<br>
+
+This season might be a *day of the week*, a *month*, a *year*, and so on.
+
+--
+
+  - It all depends on the .hi[frequency] of the time series we are working with!
+  
+
+
+
+
+---
+
+# Seasonal plots
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date) |> 
+  gg_season(labels = "both") +
+  labs(title = "Seasonal plot: International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands")
+
+```
+
+---
+
+# Seasonal plots
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+tbill |> 
+  mutate(tb3ms = as.double(tb3ms)) |> 
+  filter(date >= "1970-01-01") |> 
+  mutate(date = yearquarter(date)) |> 
+  as_tsibble(index = date) |> 
+  gg_season() +
+  scale_y_continuous(breaks = seq(0, 175.5, 2.5),
+                     labels = scales::percent_format(scale = 1)) +
+  labs(title = "Seasonal plot: U.S. 3-month Treasury Bill market rate",
+       subtitle = "1970Q1–2023Q4",
+       x = "",
+       y = "",
+       caption = "Source: U.S. Federal Reserve System.")
+
+```
+
+---
+class: inverse, middle
+
+# Scatter plots
+
+
+---
+
+# Scatter plots
+
+<br>
+
+The techniques we've studied so far *only* capture the behavior of .hi[one] specific time series over time.
+
+--
+
+<br>
+
+In case we are interested in looking at the .hi-blue[relationship(s)] between time series, we need to move on to other techniques.
+
+--
+
+<br>
+
+The most appropriate one are .hi-red[scatter plots].
+
+---
+
+# Scatter plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+vic_elec |>
+  filter(year(Time) == 2014) |>
+  ggplot(aes(x = Temperature, y = Demand)) +
+  geom_point(alpha = 0.4, color = "#8f514a") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Temperature (degrees Celsius)",
+       y = "Electricity demand (GW)",
+       title = "Electricity demand vs. temperature",
+       subtitle = "Victoria (AUS), 2014",
+       caption = "Source: Hyndman and Athanasopoulos (2021).")
+```
+
+---
+
+# Scatter plots
+
+When analyzing .hi-slate[bivariate] relationships for time series, one important *descriptive* measure is the .hi-red[correlation coefficient].
+
+--
+
+> Correlation measures the .hi-blue[linear] association between two variables.
+
+--
+
+For two time series, *x* and *y*, their correlation coefficient (*r*) is given by:
+
+<br>
+
+$$
+\begin{aligned}
+r = \dfrac{\sum(x_t - \bar{x})(y_t - \bar{y})}{\sqrt{\sum(x_t - \bar{x})^2}\sqrt{\sum(y_t - \bar{y})^2}}
+\end{aligned}
+$$
+
+<br>
+
+--
+
+And its value lies between .b[-1] (perfect, *negative* linear association) and .b[+1] (perfect, *positive* linear association).
+
+
+---
+
+# Scatter plots
+
+<br>
+
+When using correlation coefficients, .hi-slate[two] things to keep in mind:
+
+--
+
+<br><br>
+
+1. ***Correlation is not causation***!
+
+--
+
+2. Looking for *linear* relationships may be .hi-red[misleading].
+
+
+---
+
+# Scatter plots
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=6, echo=FALSE}
+
+vic_elec |>
+  filter(year(Time) == 2014) |>
+  ggplot(aes(x = Temperature, y = Demand)) +
+  geom_point(alpha = 0.4, color = "#8f514a") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(x = "Temperature (degrees Celsius)",
+       y = "Electricity demand (GW)",
+       title = "Electricity demand vs. temperature",
+       subtitle = "Victoria (AUS), 2014",
+       caption = "Source: Hyndman and Athanasopoulos (2021).")
+```
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Time series graphics II
+
+---
+exclude: true
+
+
+
+
+
