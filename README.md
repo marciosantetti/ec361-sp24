@@ -40,6 +40,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**004: Time series graphics II**
+
+  - Slides: [`html`]() | [`pdf`]()
+
+<br>
+
 
 ## Problem Sets
 
