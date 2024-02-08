@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Time series visualization techniques II]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="003-graphics-2_files/header-attrs/header-attrs.js"></script>
+    <link href="003-graphics-2_files/remark-css/default.css" rel="stylesheet" />
+    <link href="003-graphics-2_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="003-graphics-2_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Time series visualization techniques II]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 2`](https://otexts.com/fpp3/graphics.html)
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+So far, we have studied *three* types of time-series .hi-blue[visualization] techniques:
+
+--
+
+&lt;br&gt;
+
+  - *Time* plots;
+  
+  - *Seasonal* plots;
+  
+  - *Scatter* plots.
+  
+--
+
+&lt;br&gt;&lt;br&gt;
+
+There is *more* to explore, and we will study further techniques that can give important .hi-red[insights] about the relevant .hi-slate[features] of our time series.
+
+---
+class: inverse, middle
+
+# Autocorrelation
+
+---
+
+# Autocorrelation
+
+Before the next plots, we must clarify what a .hi-red[lag] means:
+
+--
+
+  &gt; In time series jargon, the number of .hi[time steps] between a series' observations is known as a .hi-slate[lag].
+  
+--
+
+&lt;br&gt;
+
+In terms of .b[notation], we will use the subscript *t* to denote a .hi-blue[time index].
+
+--
+
+  - For instance, given a time series called *y*, its value at time *t* can be denoted by *y&lt;sub&gt;t&lt;/sub&gt;*.
+
+
+In case we want to denote the value of time series *y* .b[one step in the past], we will write this as *y&lt;sub&gt;t-1&lt;/sub&gt;*.
+
+--
+
+Similarly, for any step *k* in the past, we can denote such value by *y&lt;sub&gt;t-k&lt;/sub&gt;*.
+
+
+--
+
+Such steps must be consistent with the .hi-slate[frequency] of the time series (e.g., monthly, quarterly, daily, yearly, etc.)
+
+
+---
+
+# Autocorrelation
+
+One key feature of time-series data is that .hi-red[past] values usually help to explain .hi[present] and/or .hi[future] values.
+
+--
+
+Therefore, values of a time series in the *past* may be .hi-blue[correlated] with more *recent* observations.
+
+--
+
+&lt;br&gt;
+
+More formally, for a given *k* value, *y&lt;sub&gt;t-k&lt;/sub&gt;* and *y&lt;sub&gt;t&lt;/sub&gt;* may share a *nonzero* correlation coefficient.
+
+&lt;br&gt;
+
+--
+
+Just as .hi-red[correlation] measures the extent of a *linear* relationship between two variables, .hi-blue[autocorrelation] measures the linear relationship between *lagged values of a time series*.
+
+---
+
+# Autocorrelation
+
+.pull-left[The sample .hi-red[autocovariance] at lag *k* of a time series *y* is given by
+
+$$
+`\begin{aligned}
+c_k = \dfrac{\displaystyle\sum_{t=k+1}^{T}(y_t - \bar{y})(y_{t-k} - \bar{y})}{T}
+\end{aligned}`
+$$
+]
+--
+
+.pull-right[
+
+The .hi-blue[variance] of *y* is given by
+
+$$
+`\begin{aligned}
+\text{Var}(y) = \dfrac{\displaystyle\sum_{t=1}^{T}(y_t - \bar{y})(y_{t} - \bar{y})}{T}
+\end{aligned}`
+$$
+]
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+And the .hi-slate[autocorrelation coefficient] at lag *k* is given by
+
+$$
+`\begin{aligned}
+r_k = \dfrac{c_k}{\text{Var}(y)}
+\end{aligned}`
+$$
+
+---
+class: inverse, middle
+
+# Lag plots
+
+---
+
+# Lag plots
+
+&lt;br&gt;
+
+.hi[Lag plots] display the data plotted against its different .hi-blue[lags] in a scatter plot.
+
+--
+
+&lt;br&gt;
+
+Different .hi-slate[colors] correspond to each period (*vertical axis*) against lagged values (*horizontal axis*).
+
+--
+
+&lt;br&gt;
+
+In case the time series shows .hi-red[seasonality], the autocorrelation coefficient will be .b[large] and .b[positive] at the .hi-blue[multiples] of the seasonal period.
+
+  - e.g., 12 lags for *monthly* data; 4 lags for *quarterly* data, and so on.
+
+---
+
+# Lag plots
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Lag plots
+
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Lag plots
+
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Lag plots
+
+
+
+
+```r
+air_passengers |&gt; 
+  ACF(lag_max = 12)
+```
+
+```
+#&gt; # A tsibble: 12 x 2 [1M]
+#&gt;         lag   acf
+#&gt;    &lt;cf_lag&gt; &lt;dbl&gt;
+#&gt;  1       1M 0.948
+#&gt;  2       2M 0.876
+#&gt;  3       3M 0.807
+#&gt;  4       4M 0.753
+#&gt;  5       5M 0.714
+#&gt;  6       6M 0.682
+#&gt;  7       7M 0.663
+#&gt;  8       8M 0.656
+#&gt;  9       9M 0.671
+#&gt; 10      10M 0.703
+#&gt; 11      11M 0.743
+#&gt; 12      12M 0.760
+```
+
+
+---
+
+# Lag plots
+
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Lag plots
+
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: clear
+
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Lag plots
+
+
+```r
+beer |&gt; 
+  ACF(lag_max = 8)
+```
+
+```
+#&gt; # A tsibble: 8 x 2 [1Q]
+#&gt;        lag     acf
+#&gt;   &lt;cf_lag&gt;   &lt;dbl&gt;
+#&gt; 1       1Q -0.102 
+#&gt; 2       2Q -0.657 
+#&gt; 3       3Q -0.0603
+#&gt; 4       4Q  0.869 
+#&gt; 5       5Q -0.0892
+#&gt; 6       6Q -0.635 
+#&gt; 7       7Q -0.0542
+#&gt; 8       8Q  0.832
+```
+
+
+---
+class: inverse, middle
+
+# The autocorrelation function
+
+
+---
+
+# The autocorrelation function
+
+A more .hi-red[insightful] way to observe the autocorrelation coefficient is through the .hi-blue[Autocorrelation Function (ACF) plot].
+
+--
+
+It simply plots together the *values* of the .hi[autocorrelation coefficient] against different *lags.*
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# The autocorrelation function
+
+.pull-left[
+
+```r
+beer |&gt; 
+  ACF(lag_max = 8)
+```
+
+```
+#&gt; # A tsibble: 8 x 2 [1Q]
+#&gt;        lag     acf
+#&gt;   &lt;cf_lag&gt;   &lt;dbl&gt;
+#&gt; 1       1Q -0.102 
+#&gt; 2       2Q -0.657 
+#&gt; 3       3Q -0.0603
+#&gt; 4       4Q  0.869 
+#&gt; 5       5Q -0.0892
+#&gt; 6       6Q -0.635 
+#&gt; 7       7Q -0.0542
+#&gt; 8       8Q  0.832
+```
+]
+
+.pull-right[
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+]
+---
+
+# The autocorrelation function
+
+An autocorrelation function plot is also known as .hi-blue[correlogram].
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# The autocorrelation function
+
+
+
+
+```r
+air_passengers |&gt; 
+  ACF(lag_max = 12)
+```
+
+```
+#&gt; # A tsibble: 12 x 2 [1M]
+#&gt;         lag   acf
+#&gt;    &lt;cf_lag&gt; &lt;dbl&gt;
+#&gt;  1       1M 0.948
+#&gt;  2       2M 0.876
+#&gt;  3       3M 0.807
+#&gt;  4       4M 0.753
+#&gt;  5       5M 0.714
+#&gt;  6       6M 0.682
+#&gt;  7       7M 0.663
+#&gt;  8       8M 0.656
+#&gt;  9       9M 0.671
+#&gt; 10      10M 0.703
+#&gt; 11      11M 0.743
+#&gt; 12      12M 0.760
+```
+
+
+---
+
+# The autocorrelation function
+
+The ACF plot may show interesting patterns, depending on the .hi-slate[features] of the time series.
+
+--
+
+- When data have a .hi-red[trend], the autocorrelations for *small* lags tend to be .b[large] and .b[positive].
+
+  - Observations nearby in time are *also* nearby in value!
+  
+--
+
+&lt;br&gt;
+
+- When data are .hi-blue[seasonal], the autocorrelations will be *larger* for the *seasonal* lags (at multiples of the seasonal period) than for other lags.
+
+--
+
+&lt;br&gt;
+
+- When data are both .hi-red[trended] and .hi-blue[seasonal], the ACF plot usually shows a .b[combination] of the above effects.
+
+
+---
+
+# The autocorrelation function
+
+.center[
+&lt;img src="acfs.png", width = "110%"&gt;
+]
+
+---
+
+# The autocorrelation function
+
+&lt;br&gt;&lt;br&gt;&lt;br&gt;
+
+[`A different look at the autocorrelation function, by Alison Horst`](https://allisonhorst.com/time-series-acf)
+
+
+
+---
+class: inverse, middle
+
+# White noise
+
+---
+
+# White noise
+
+Some time series may *not* show autocorrelation .hi-blue[at all].
+
+--
+
+When this is the case, they are called .hi-red[white noise].
+
+--
+
+&gt; A time series *w&lt;sub&gt;t&lt;/sub&gt;* is defined to be .b[white noise] if its observations are *identically and independently distributed* (i.i.d.) with a *mean* of zero and constant *variance.*
+
+--
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# White noise
+
+&lt;img src="003-graphics-2_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Time series decomposition
+
+---
+exclude: true
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

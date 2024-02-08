@@ -1,6 +1,8 @@
 library(fpp3)
 library(tidyverse)
 library(tsibble)
+library(scales)
+library(viridis)
 
 
 un <- read_csv("unrate.csv") |> 
@@ -142,4 +144,40 @@ unrate |>
   rename(cpi = `cpi$cpilfesl_pc1`) |> 
   ggplot(aes(x = unrate, y = cpi)) +
   geom_point()
-  
+
+
+
+
+###
+
+
+air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date) |> 
+  gg_lag(geom = "point")
+
+
+
+###
+
+
+retail <- read_csv("MRTSSM44000USN.csv") |> 
+  clean_names()
+
+
+retail <- retail |> 
+  mutate(mrtssm44000usn = as.double(mrtssm44000usn)) |> 
+  rename(sales = mrtssm44000usn)
+
+
+retail <- retail |> 
+  mutate(date = yearquarter(date)) |> 
+  as_tsibble(index = date)
+
+retail |> 
+  autoplot()
+
+
+retail |> 
+  mutate(sales = sales/1e4) |> 
+  gg_lag(geom = "point", lags = 1:8) 
