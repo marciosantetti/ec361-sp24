@@ -34,6 +34,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**003: Time series graphics I**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/003-graphics/003-graphics.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/003-graphics/003-graphics.pdf)
+
+<br>
+
 
 ## Problem Sets
 
