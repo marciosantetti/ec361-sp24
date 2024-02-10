@@ -47,6 +47,31 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 <br>
 
 
+## Applied lectures
+
+<br>
+
+The following code will install the main packages needed for the applied lectures.
+
+```r
+install.packages(c("feasts", "tsibble", "fable", "fabletools", "fpp3", "sugrrants"))
+```
+
+
+
+<br>
+
+**001: Time series graphics**
+
+<br>
+
+  - [`Part 1`]()
+  - [`Part 2`]()
+
+<br>
+
+
+
 ## Problem Sets
 
 <br>
