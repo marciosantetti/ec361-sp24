@@ -54,7 +54,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 The following code will install the main packages needed for the applied lectures.
 
 ```r
-install.packages(c("feasts", "tsibble", "fable", "fabletools", "fpp3", "sugrrants"))
+install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3", "sugrrants"))
 ```
 
 
