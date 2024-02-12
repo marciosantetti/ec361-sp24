@@ -1,0 +1,162 @@
+---
+title: ".b[Time series decomposition I]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10.5,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+  - [`Hyndman & Athanasopoulos, ch. 3`](https://otexts.com/fpp3/decomposition.html)
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+
+Given that a time series may exhibit several different .hi-slate[features], these can be .hi-red[split] into different components, each representing an underlying pattern category.
+
+--
+
+Recall the three main .hi-slate[features]:
+
+  - Trend;
+  
+  - Seasonality;
+  
+  - Cyclical component.
+  
+--
+
+<br>
+
+The usual approach is to consider the .hi-blue[trend and cycle] components *together*; the .hi-red[seasonal] features; and a third component containing *anything else* that the other two do not comprise, known as the .hi[remainder].
+
+---
+
+# Motivation
+
+<br>
+
+This week, we will learn to .hi-slate[decompose] a time series into these features.
+
+--
+
+<br>
+
+This way, we .hi-red[improve] our understanding of the time series at hand.
+
+--
+
+<br>
+
+First, though, some .hi[adjustments] are necessary to make our jobs easier.
+
+
+
+---
+class: inverse, middle
+
+
+# Data transformations
+
+
+---
+
+# Data transformations
+
+
+---
+class: inverse, middle
+
+
+# Time series components
+
+---
+
+# Time series components
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Time series decomposition II
+
+---
+exclude: true
+
+
+
+
+
