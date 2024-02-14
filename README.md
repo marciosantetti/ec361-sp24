@@ -65,8 +65,8 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 
 <br>
 
-  - [`Part 1`]()
-  - [`Part 2`]()
+  - [`Part 1`](https://youtu.be/GuK0qH8jj8I)
+  - [`Part 2`](https://youtu.be/mGwx6daVB8Q)
 
 <br>
 
@@ -77,6 +77,7 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 <br>
 
 - [`Problem Set 0`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps0-ec361-sp24.pdf) (due 02/16, 12:20 PM)
+- [`Problem Set 1`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps1-ec361-sp24.pdf) (due 03/01, 12:20 PM)
 
 
 <br>
