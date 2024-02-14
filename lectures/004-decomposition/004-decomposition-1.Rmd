@@ -28,13 +28,13 @@ opts_chunk$set(
   comment = "#>",
   fig.align = "center",
   fig.height = 7,
-  fig.width = 10.5,
+  fig.width = 13,
   warning = F,
   message = F,
   dpi=300
 )
 
-theme_set(theme_ipsum_rc())
+theme_set(theme_ipsum_rc()) 
 
 ```
 
@@ -66,6 +66,8 @@ purple <- "#6A5ACD"
 <br>
 
   - [`Hyndman & Athanasopoulos, ch. 3`](https://otexts.com/fpp3/decomposition.html)
+  
+    - Sections 3.1&mdash;3.4.
   
     
 
@@ -105,7 +107,7 @@ The usual approach is to consider the .hi-blue[trend and cycle] components *toge
 
 <br>
 
-This week, we will learn to .hi-slate[decompose] a time series into these features.
+This week, we will learn how to .hi-slate[decompose] a time series into these features.
 
 --
 
@@ -117,7 +119,7 @@ This way, we .hi-red[improve] our understanding of the time series at hand.
 
 <br>
 
-First, though, some .hi[adjustments] are necessary to make our jobs easier.
+First, though, some .hi[adjustments] may be necessary to make our jobs easier.
 
 
 
@@ -132,6 +134,226 @@ class: inverse, middle
 
 # Data transformations
 
+<br><br>
+
+Among the .it[several] different data .hi-red[adjustment/transformation] techniques that exist in Statistics, (macro)economists use mainly *three*:
+
+<br>
+
+  1. *Per capita* adjustments;
+  
+  2. *Inflation* (real) adjustments;
+  
+  3. *Logarithmic* transformations.
+  
+
+---
+
+# Data transformations
+
+- .b[*Per capita*] adjustments:
+
+Many times, we are interested in economic measures *relative to some populational reference*.
+
+--
+
+<br>
+
+For instance, it is not uncommon to analyze a country's .hi-blue[Gross Domestic Product] (GDP) relative to its population size
+
+  - i.e., GDP *per capita*.
+  
+
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+
+gdp <- read_csv("GDP.csv") |> 
+  clean_names()
+
+gdp |> 
+  ggplot(aes(x = date, y = gdp)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Billions of dollars",
+       x = "",
+       title = "U.S. nominal GDP",
+       subtitle = "1947Q1–2023Q4",
+       caption = "Source: U.S. Bureau of Economic Analysis.") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+
+gdppc <- read_csv("A939RC0Q052SBEA.csv") |> 
+  clean_names() |> 
+  rename(gdppc = a939rc0q052sbea)
+
+gdppc |> 
+  ggplot(aes(x = date, y = gdppc)) +
+  geom_line() +
+  scale_y_continuous(labels = comma) +
+  labs(y = "Dollars",
+       x = "",
+       title = "U.S. nominal GDP per capita",
+       subtitle = "1947Q1–2023Q4",
+       caption = "Source: U.S. Bureau of Economic Analysis.") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+```
+
+
+
+
+
+
+---
+
+# Data transformations
+
+- .b[Inflation (real)] adjustments:
+
+
+As economists, we know that .hi[nominal] measures may be misleading, since changes in .hi-red[prices] may *distort* a statistic of interest.
+
+--
+
+<br>
+
+Therefore, many times we need to use .hi-slate[real] adjustments to our data. 
+
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+wcpi <- read_csv("wages_cpi.csv") |> 
+  clean_names() |> 
+  rename(nominal_wages = les1252881500q,
+         cpi = cpiaucsl)
+
+
+wcpi |> 
+  ggplot(aes(x = date, y = nominal_wages)) +
+  geom_line() +
+  labs(title = "Median weekly nominal earnings",
+       subtitle = "1979Q1–2023Q4",
+       x = "",
+       y = "Dollars",
+       caption = "Source: U.S. Bureau of Labor Statistics.") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+
+
+
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+wcpi <- read_csv("wages_cpi.csv") |> 
+  clean_names() |> 
+  rename(nominal_wages = les1252881500q,
+         cpi = cpiaucsl)
+
+
+wcpi |> 
+  mutate(real_wages = nominal_wages / cpi) |> 
+  ggplot(aes(x = date, y = real_wages)) +
+  geom_line() + 
+  labs(title = "Median weekly real earnings, normalized by Consumer Price Index (CPI)",
+       subtitle = "1979Q1–2023Q4",
+       x = "",
+       y = "Dollars",
+       caption = "Source: U.S. Bureau of Labor Statistics.") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+---
+
+# Data transformations
+
+- .b[Logarithmic] transformations:
+
+<br>
+
+In case the .hi-red[variance] of our data changes at different levels of the series, a .hi-blue[logarithmic transformation] may be useful.
+
+--
+
+<br>
+
+In addition, using .hi-slate[natural logarithms] (base *e*) are *directly interpretable*:
+
+  - Changes in a *log* value are relative (percent) changes on the original scale.
+  
+  
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+air <- read_csv("https://raw.githubusercontent.com/selva86/datasets/master/AirPassengers.csv")
+
+
+air |> 
+  #mutate(date = yearmonth(date)) |> 
+  ggplot(aes(x = date, y = value)) +
+  geom_line() +
+  scale_x_date(date_breaks = "2 years", date_labels = "%b %Y") +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+---
+
+# Data transformations
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+air <- read_csv("https://raw.githubusercontent.com/selva86/datasets/master/AirPassengers.csv")
+
+
+air |> 
+  #mutate(date = yearmonth(date)) |> 
+  ggplot(aes(x = date, y = log(value))) +
+  geom_line() +
+  scale_x_date(date_breaks = "2 years", date_labels = "%b %Y") +
+  labs(title = "International airline passengers (logs)",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
 
 ---
 class: inverse, middle
@@ -143,9 +365,439 @@ class: inverse, middle
 
 # Time series components
 
+Time series data can be decomposed into its .hi-blue[trend-cycle] (*T<sub>t</sub>*), .hi-red[seasonal] (*S<sub>t</sub>*), and .hi[remainder] (*R<sub>t</sub>*) components in *two* ways:
+
+--
+
+  - .b[Additive]: *T<sub>t</sub>* + *S<sub>t</sub>* + *R<sub>t</sub>*
+  
+  - .b[Multiplicative]: *T<sub>t</sub>* &times; *S<sub>t</sub>* &times; *R<sub>t</sub>*
+
+--
+
+
+In case the magnitude of the seasonal fluctuations .b[does not] vary with the level of the time series, the .hi[additive] decomposition is appropriate.
+
+--
+
+However, in case the variance of the time series is not constant, the .hi-red[multiplicative] method is a better choice.
+
+--
+
+In our case, we will stick with the .hi[additive method]:
+
+  - Recall that if *y<sub>t</sub>* = *T<sub>t</sub>* &times; *S<sub>t</sub>* &times; *R<sub>t</sub>* &rarr; *log y<sub>t</sub>* = *log T<sub>t</sub>* + *log S<sub>t</sub>* + *log R<sub>t</sub>*
+  
+  
+---
+
+# Time series components
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+aus_production <- aus_production |> 
+  clean_names()
+
+
+aus_production |> 
+  autoplot(electricity) +
+  scale_y_continuous(labels = comma) +
+  labs(title = "Australian electricity production",
+       subtitle = "1949Q1–2010Q2",
+       y = "Gigawatt hours",
+       x = "",
+       caption = "Source: Hyndman & Athanasopoulos (2021)") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+```
+
+---
+class: clear
+
+# Time series components
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=9, fig.width = 10, echo=FALSE}
+
+aus_production |> 
+  model(cd = classical_decomposition(electricity)) |> 
+  components(cd) |> 
+  autoplot()
 
 
 
+```
+
+
+---
+
+# Time series components
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+aus_production |> 
+  model(cd = classical_decomposition(electricity)) |> 
+  components(cd) |> 
+  ggplot(aes(x = quarter, y = electricity)) +
+  geom_line() +
+  geom_line(aes(y = trend), color = "#860b35", linewidth = 1) +
+  labs(title = "Original series + Trend-Cycle component",
+       subtitle = "Black: original series; Red: trend-cycle",
+       y = "Gigawatt hours",
+       x = "",
+       caption = "Source: Hyndman & Athanasopoulos (2021).")  +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+
+
+```
+
+---
+
+# Time series components
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+
+aus_production |>
+  select(quarter, beer) |> 
+  filter(year(quarter) >= 1992) |> 
+  autoplot() +
+  labs(title = "Australian beer production",
+       subtitle = "1992Q1–2010Q2",
+       y = "Megaliters",
+       caption = "Source: Hyndman and Athanasopoulos (2021).") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+
+
+---
+
+# Time series components
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+aus_production |>
+  select(quarter, beer) |> 
+  filter(year(quarter) >= 1992) |> 
+  model(cd = classical_decomposition(beer)) |> 
+  components(cd) |> 
+  autoplot()
+
+
+
+```
+
+
+
+
+
+---
+
+
+# Time series components
+
+If the .hi-red[seasonal] component is removed from the original data, the resulting values are the .hi-slate[*seasonally adjusted*] data.
+
+--
+
+In case of an additive decomposition, seasonally adjusted data are simply
+
+.center[
+*y<sub>t</sub>* - *S<sub>t</sub>* = *T<sub>t</sub>* + *R<sub>t</sub>*
+]
+
+--
+
+<br>
+
+Seasonally adjusted data are especially .hi-blue[useful] to understand the variations in the data due to the underlying *state of the economy*, rather than due to seasonal factors.
+
+--
+
+<br>
+
+Recall that seasonally adjusted data contain the *trend-cycle* .b[and] the *remainder.* 
+
+  - Therefore, seasonally adjusted data have more .hi-orange[noise] than just the trend.
+  
+  
+---
+
+# Time series components
+
+<br><br><br>
+
+[`A look at seasonally adjusted data`](https://fred.stlouisfed.org/#)  
+
+---
+
+# Time series components
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+aus_production |> 
+  model(cd = classical_decomposition(electricity)) |> 
+  components(cd) |> 
+  ggplot(aes(x = quarter, y = electricity)) +
+  geom_line() +
+  geom_line(aes(y = season_adjust), color = "#860b35", linewidth = 1) +
+  labs(title = "Original series + Seasonally adjusted component",
+       subtitle = "Black: original series; Red: seasonally adjusted data",
+       y = "Gigawatt hours",
+       x = "",
+       caption = "Source: Hyndman & Athanasopoulos (2021).") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+
+
+```
+
+
+---
+class: inverse, middle
+
+# Classical decomposition
+
+
+---
+
+# Classical decomposition
+
+There are .hi-red[several] methods one can use to decompose a time series into its main *features.*
+
+--
+
+<br>
+
+The *starting point* is the so-called .hi[classical decomposition].
+
+--
+
+Regarding seasonality, classical decomposition assumes that the *seasonal* component is .hi-slate[constant] from year to year.
+
+--
+
+<br>
+
+Concentrating on the .hi[additive] decomposition case, the first step is to estimate the .hi-blue[trend-cycle] component.
+
+  - This is done by using a .hi-red[moving-average] approach.
+  
+---
+
+
+# Classical decomposition
+
+A .hi-red[moving average] of order *m* is defined by
+
+
+<br>
+
+$$
+\begin{aligned}
+m\text{-order MA} = \dfrac{1}{m}\displaystyle\sum^k_{j = -k}y_{t+j}  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{where} \ m = 2k + 1
+\end{aligned}
+$$
+
+
+<br>
+
+--
+
+The .hi-blue[intuition] behind moving averages is that, since *neighboring* observations are likely to be close in value, a more dynamic averaging measure will eliminate some of the .hi[randomness] in the data.  
+
+
+
+---
+
+# Classical decomposition
+
+
+$$
+\begin{aligned}
+\dfrac{1}{m}\displaystyle\sum^k_{j = -k}y_{t+j}  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{where} \ m = 2k + 1
+\end{aligned}
+$$
+
+
+
+```{r, echo=FALSE}
+library(RcppRoll)
+us_private_service <- us_employment |> 
+  filter_index("1980-01-01" ~ .) |> 
+  filter(Title == "Private Service-Providing")
+
+
+
+
+us_private_service <- us_private_service |> 
+  mutate(ma3 = roll_mean(Employed, n = 3, align = "center", fill = NA),
+         ma5 = roll_mean(Employed, n = 5, align = "center", fill = NA),
+         ma9 = roll_mean(Employed, n = 9, align = "center", fill = NA),
+         ma15 = roll_mean(Employed, n = 15, align = "center", fill = NA))
+
+us_private_service <- us_private_service |> 
+  select(-Series_ID)
+
+```
+
+```{r}
+
+
+
+us_private_service
+
+```
+
+---
+class: clear
+
+# Classical decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=9.5, echo=FALSE}
+ma3 <- us_private_service |> 
+  autoplot(Employed) +
+  geom_line(aes(y = ma3), color = "#860b35") +
+  scale_y_continuous(labels = comma) +
+  labs(title = "Private services: Number of employed persons, Jan 1980 – Sep 2019",
+       subtitle = "Black: Original series; Red: 3-month moving average",
+       y = "Persons employed",
+       x = "") +
+  easy_y_axis_title_size(14)
+
+
+ma5 <- us_private_service |> 
+  autoplot(Employed) +
+  geom_line(aes(y = ma5), color = "#860b35") +
+  scale_y_continuous(labels = comma) +
+  labs(subtitle = "Red: 5-month moving average",
+       x = "")  +
+  easy_y_axis_title_size(14)
+
+ma9 <- us_private_service |> 
+  autoplot(Employed) +
+  geom_line(aes(y = ma9), color = "#860b35") +
+  scale_y_continuous(labels = comma) +
+  labs(subtitle = "Red: 9-month moving average",
+       x = "") +
+  easy_y_axis_title_size(14) 
+
+ma15 <- us_private_service |> 
+  autoplot(Employed) +
+  geom_line(aes(y = ma15), color = "#860b35") +
+  scale_y_continuous(labels = comma) +
+  labs(subtitle = "Red: 15-month moving average",
+       x = "") +
+  easy_y_axis_title_size(14) 
+
+(ma3 | ma5) /(ma9 | ma15)
+```
+
+
+---
+
+# Classical decomposition
+
+After the trend-cycle component is obtained, we may obtain a .hi-slate[detrended] series:
+
+$$
+\begin{aligned}
+y_t - \hat{T}_t
+\end{aligned}
+$$
+
+--
+
+<br>
+
+The .hi-red[seasonal] component is calculated by taking the .hi[average] of the *detrended* values for each season.
+
+  - Each *quarter* for quarterly data, each *month* for monthly data, and so on.
+
+
+--
+
+<br>
+
+Finally, the .hi-blue[remainder] results from subtracting the seasonal and trend-cycle components from the original data:
+
+$$
+\begin{aligned}
+\hat{R}_t = y_t - \hat{T}_t - \hat{S}_t
+\end{aligned}
+$$
+
+
+---
+# Classical decomposition
+
+In summary:
+
+<br>
+
+.pseudocode-small[
+1. For a time series with seasonal period *m*:
+
+  - If *m* is *even*, obtain the trend-cycle component by using a *2 &times; m* moving average;
+  - If *m* is *odd*, obtain the trend-cycle component by using a an *m-order* moving average.
+
+2. Calculate the *detrended* series: *y<sub>t</sub> - T<sub>t</sub>*;
+
+3. For the *seasonal* component, average the detrended values for each season. If needed, adjust so they add up to *zero*.
+
+4. The *remainder* component is calculated by subtracting the estimated seasonal and trend-cycle components: *R<sub>t</sub> = y<sub>t</sub> - T<sub>t</sub> - S<sub>t</sub>*
+
+]
+
+---
+class: clear
+
+# Classical decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=9, echo=FALSE}
+
+aus_production |> 
+  model(cd = classical_decomposition(electricity)) |> 
+  components(cd) |> 
+  autoplot()
+
+
+
+```
+
+
+
+---
+
+# Classical decomposition
+
+<br>
+
+Some .hi-red[drawbacks] of classical decomposition:
+
+<br>
+
+  - Since it uses moving averages, the trend-cycle is .b[unavailable] for the first few and last few observations;
+  
+  - The trend-cycle estimate tends to .b[over-smooth] rapid rises and falls in the data;
+  
+  - Classical decomposition methods assume that the seasonal component .b[repeats] from year to year;
+  
+  - Not robust for .b[outliers].
+  
 
 ---
 layout: false

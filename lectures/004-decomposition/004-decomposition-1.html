@@ -50,6 +50,8 @@ class: center, middle, inverse, title-slide
 
   - [`Hyndman &amp; Athanasopoulos, ch. 3`](https://otexts.com/fpp3/decomposition.html)
   
+    - Sections 3.1&amp;mdash;3.4.
+  
     
 
 
@@ -80,7 +82,29 @@ Recall the three main .hi-slate[features]:
 
 &lt;br&gt;
 
-The usual approach is to consider the .hi-blue[trend and cycle] components together; the .hi-red[seasonal] features, and a third component containing *anything else* that the other two do not comprise, known as the .hi[remainder].
+The usual approach is to consider the .hi-blue[trend and cycle] components *together*; the .hi-red[seasonal] features; and a third component containing *anything else* that the other two do not comprise, known as the .hi[remainder].
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+This week, we will learn how to .hi-slate[decompose] a time series into these features.
+
+--
+
+&lt;br&gt;
+
+This way, we .hi-red[improve] our understanding of the time series at hand.
+
+--
+
+&lt;br&gt;
+
+First, though, some .hi[adjustments] may be necessary to make our jobs easier.
+
+
 
 ---
 class: inverse, middle
@@ -93,6 +117,113 @@ class: inverse, middle
 
 # Data transformations
 
+&lt;br&gt;&lt;br&gt;
+
+Among the .it[several] different data .hi-red[adjustment/transformation] techniques that exist in Statistics, (macro)economists use mainly *three*:
+
+&lt;br&gt;
+
+  1. *Per capita* adjustments;
+  
+  2. *Inflation* (real) adjustments;
+  
+  3. *Logarithmic* transformations.
+  
+
+---
+
+# Data transformations
+
+- .b[*Per capita*] adjustments:
+
+Many times, we are interested in economic measures *relative to some populational reference*.
+
+--
+
+&lt;br&gt;
+
+For instance, it is not uncommon to analyze a country's .hi-blue[Gross Domestic Product] (GDP) relative to its population size
+
+  - i.e., GDP *per capita*.
+  
+
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+
+---
+
+# Data transformations
+
+- .b[Inflation (real)] adjustments:
+
+
+As economists, we know that .hi[nominal] measures may be misleading, since changes in .hi-red[prices] may *distort* a statistic of interest.
+
+--
+
+&lt;br&gt;
+
+Therefore, many times we need to use .hi-slate[real] adjustments to our data. 
+
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Data transformations
+
+- .b[Logarithmic] transformations:
+
+&lt;br&gt;
+
+In case the .hi-red[variance] of our data changes at different levels of the series, a .hi-blue[logarithmic transformation] may be useful.
+
+--
+
+&lt;br&gt;
+
+In addition, using .hi-slate[natural logarithms] (base *e*) are *directly interpretable*:
+
+  - Changes in a *log* value are relative (percent) changes on the original scale.
+  
+  
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Data transformations
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
 
 ---
 class: inverse, middle
@@ -104,9 +235,299 @@ class: inverse, middle
 
 # Time series components
 
+Time series data can be decomposed into its .hi-blue[trend-cycle] (*T&lt;sub&gt;t&lt;/sub&gt;*), .hi-red[seasonal] (*S&lt;sub&gt;t&lt;/sub&gt;*), and .hi[remainder] (*R&lt;sub&gt;t&lt;/sub&gt;*) components in *two* ways:
+
+--
+
+  - .b[Additive]: *T&lt;sub&gt;t&lt;/sub&gt;* + *S&lt;sub&gt;t&lt;/sub&gt;* + *R&lt;sub&gt;t&lt;/sub&gt;*
+  
+  - .b[Multiplicative]: *T&lt;sub&gt;t&lt;/sub&gt;* &amp;times; *S&lt;sub&gt;t&lt;/sub&gt;* &amp;times; *R&lt;sub&gt;t&lt;/sub&gt;*
+
+--
+
+
+In case the magnitude of the seasonal fluctuations .b[does not] vary with the level of the time series, the .hi[additive] decomposition is appropriate.
+
+--
+
+However, in case the variance of the time series is not constant, the .hi-red[multiplicative] method is a better choice.
+
+--
+
+In our case, we will stick with the .hi[additive method]:
+
+  - Recall that if *y&lt;sub&gt;t&lt;/sub&gt;* = *T&lt;sub&gt;t&lt;/sub&gt;* &amp;times; *S&lt;sub&gt;t&lt;/sub&gt;* &amp;times; *R&lt;sub&gt;t&lt;/sub&gt;* &amp;rarr; *log y&lt;sub&gt;t&lt;/sub&gt;* = *log T&lt;sub&gt;t&lt;/sub&gt;* + *log S&lt;sub&gt;t&lt;/sub&gt;* + *log R&lt;sub&gt;t&lt;/sub&gt;*
+  
+  
+---
+
+# Time series components
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: clear
+
+# Time series components
+
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Time series components
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Time series components
+
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 
+---
+
+# Time series components
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+---
+
+
+# Time series components
+
+If the .hi-red[seasonal] component is removed from the original data, the resulting values are the .hi-slate[*seasonally adjusted*] data.
+
+--
+
+In case of an additive decomposition, seasonally adjusted data are simply
+
+.center[
+*y&lt;sub&gt;t&lt;/sub&gt;* - *S&lt;sub&gt;t&lt;/sub&gt;* = *T&lt;sub&gt;t&lt;/sub&gt;* + *R&lt;sub&gt;t&lt;/sub&gt;*
+]
+
+--
+
+&lt;br&gt;
+
+Seasonally adjusted data are especially .hi-blue[useful] to understand the variations in the data due to the underlying *state of the economy*, rather than due to seasonal factors.
+
+--
+
+&lt;br&gt;
+
+Recall that seasonally adjusted data contain the *trend-cycle* .b[and] the *remainder.* 
+
+  - Therefore, seasonally adjusted data have more .hi-orange[noise] than just the trend.
+  
+  
+---
+
+# Time series components
+
+&lt;br&gt;&lt;br&gt;&lt;br&gt;
+
+[`A look at seasonally adjusted data`](https://fred.stlouisfed.org/#)  
+
+---
+
+# Time series components
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, middle
+
+# Classical decomposition
+
+
+---
+
+# Classical decomposition
+
+There are .hi-red[several] methods one can use to decompose a time series into its main *features.*
+
+--
+
+&lt;br&gt;
+
+The *starting point* is the so-called .hi[classical decomposition].
+
+--
+
+Regarding seasonality, classical decomposition assumes that the *seasonal* component is .hi-slate[constant] from year to year.
+
+--
+
+&lt;br&gt;
+
+Concentrating on the .hi[additive] decomposition case, the first step is to estimate the .hi-blue[trend-cycle] component.
+
+  - This is done by using a .hi-red[moving-average] approach.
+  
+---
+
+
+# Classical decomposition
+
+A .hi-red[moving average] of order *m* is defined by
+
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+m\text{-order MA} = \dfrac{1}{m}\displaystyle\sum^k_{j = -k}y_{t+j}  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{where} \ m = 2k + 1
+\end{aligned}`
+$$
+
+
+&lt;br&gt;
+
+--
+
+The .hi-blue[intuition] behind moving averages is that, since *neighboring* observations are likely to be close in value, a more dynamic averaging measure will eliminate some of the .hi[randomness] in the data.  
+
+
+
+---
+
+# Classical decomposition
+
+
+$$
+`\begin{aligned}
+\dfrac{1}{m}\displaystyle\sum^k_{j = -k}y_{t+j}  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \text{where} \ m = 2k + 1
+\end{aligned}`
+$$
+
+
+
+
+
+
+```r
+us_private_service
+```
+
+```
+#&gt; # A tsibble: 477 x 7 [1M]
+#&gt;       Month Title                     Employed    ma3    ma5    ma9   ma15
+#&gt;       &lt;mth&gt; &lt;chr&gt;                        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+#&gt;  1 1980 Jan Private Service-Providing    49040    NA     NA     NA     NA 
+#&gt;  2 1980 Feb Private Service-Providing    49041 49141.    NA     NA     NA 
+#&gt;  3 1980 Mar Private Service-Providing    49343 49322. 49358     NA     NA 
+#&gt;  4 1980 Apr Private Service-Providing    49581 49570. 49557     NA     NA 
+#&gt;  5 1980 May Private Service-Providing    49785 49800. 49741. 49671     NA 
+#&gt;  6 1980 Jun Private Service-Providing    50035 49927. 49889. 49807.    NA 
+#&gt;  7 1980 Jul Private Service-Providing    49962 50026  50007. 49969.    NA 
+#&gt;  8 1980 Aug Private Service-Providing    50081 50071. 50103  50146. 49910.
+#&gt;  9 1980 Sep Private Service-Providing    50171 50173. 50196. 50179. 50019.
+#&gt; 10 1980 Oct Private Service-Providing    50266 50312  50391. 50191. 50150.
+#&gt; # ℹ 467 more rows
+```
+
+---
+class: clear
+
+# Classical decomposition
+
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Classical decomposition
+
+After the trend-cycle component is obtained, we may obtain a .hi-slate[detrended] series:
+
+$$
+`\begin{aligned}
+y_t - \hat{T}_t
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+The .hi-red[seasonal] component is calculated by taking the .hi[average] of the *detrended* values for each season.
+
+  - Each *quarter* for quarterly data, each *month* for monthly data, and so on.
+
+
+--
+
+&lt;br&gt;
+
+Finally, the .hi-blue[remainder] results from subtracting the seasonal and trend-cycle components from the original data:
+
+$$
+`\begin{aligned}
+\hat{R}_t = y_t - \hat{T}_t - \hat{S}_t
+\end{aligned}`
+$$
+
+
+---
+# Classical decomposition
+
+In summary:
+
+&lt;br&gt;
+
+.pseudocode-small[
+1. For a time series with seasonal period *m*:
+
+  - If *m* is *even*, obtain the trend-cycle component by using a *2 &amp;times; m* moving average;
+  - If *m* is *odd*, obtain the trend-cycle component by using a an *m-order* moving average.
+
+2. Calculate the *detrended* series: *y&lt;sub&gt;t&lt;/sub&gt; - T&lt;sub&gt;t&lt;/sub&gt;*;
+
+3. For the *seasonal* component, average the detrended values for each season. If needed, adjust so they add up to *zero*.
+
+4. The *remainder* component is calculated by subtracting the estimated seasonal and trend-cycle components: *R&lt;sub&gt;t&lt;/sub&gt; = y&lt;sub&gt;t&lt;/sub&gt; - T&lt;sub&gt;t&lt;/sub&gt; - S&lt;sub&gt;t&lt;/sub&gt;*
+
+]
+
+---
+class: clear
+
+# Classical decomposition
+
+
+&lt;img src="004-decomposition-1_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Classical decomposition
+
+&lt;br&gt;
+
+Some .hi-red[drawbacks] of classical decomposition:
+
+&lt;br&gt;
+
+  - Since it uses moving averages, the trend-cycle is .b[unavailable] for the first few and last few observations;
+  
+  - The trend-cycle estimate tends to .b[over-smooth] rapid rises and falls in the data;
+  
+  - Classical decomposition methods assume that the seasonal component .b[repeats] from year to year;
+  
+  - Not robust for .b[outliers].
+  
 
 ---
 layout: false
