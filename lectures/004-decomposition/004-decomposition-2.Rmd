@@ -28,7 +28,7 @@ opts_chunk$set(
   comment = "#>",
   fig.align = "center",
   fig.height = 7,
-  fig.width = 10.5,
+  fig.width = 12,
   warning = F,
   message = F,
   dpi=300
@@ -82,6 +82,171 @@ class: inverse, middle
 
 # Motivation
 
+Time series .hi-slate[decomposition methods] help us extracting the main *features* of time series data.
+
+--
+
+<br>
+
+In addition to .hi-blue[disentangling] the variable into its trend-cycle, seasonal, and remainder components, it also allows us to obtain .hi-red[seasonally adjusted] data.
+
+--
+
+<br>
+
+The starting point is the .hi-slate[classical decomposition] method, which is based on *moving averages* and on a *constant* *seasonal* component.
+
+--
+
+<br>
+
+Given such .hi-red[limitations], we will now explore more .b[robust] decomposition techniques.
+
+---
+class: inverse, middle
+
+# STL decomposition
+
+---
+
+# STL decomposition
+
+A more robust decomposition method is the so-called .hi-slate[STL decomposition].
+
+--
+
+> .b[STL] = *"Seasonal and Trend decomposition using Loess"*
+
+--
+
+
+It was first introduced by [`Cleveland et al. (1990)`](https://www.scb.se/contentassets/ca21efb41fee47d293bbee5bf7be7fb3/stl-a-seasonal-trend-decomposition-procedure-based-on-loess.pdf), and provides a more .hi[robust] decomposition relative to the classical method.
+
+--
+
+
+For instance, 
+
+  - It allows the .hi-red[seasonal] component to change over time;
+  
+  - It is robust to .b[outliers];
+  
+  - The user may easily .hi[control] its parameters;
+  
+  - It relies on local regressions, in addition to moving averages, to estimate the .hi-blue[trend-cycle] component.
+
+---
+
+# STL decomposition
+
+```{r, echo=FALSE}
+library(RcppRoll)
+us_private_service <- us_employment |> 
+  filter_index("1980-01-01" ~ .) |> 
+  filter(Title == "Private Service-Providing")
+
+
+
+us_private_service <- us_private_service |> 
+  select(-Series_ID)
+
+```
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+us_private_service |> 
+  autoplot(Employed) +
+  scale_y_continuous(labels = comma) +
+  labs(title = "Private services: Number of employed persons",
+       subtitle = "Jan 1980 – Sep 2019",
+       y = "Persons employed",
+       x = "") +
+  easy_y_axis_title_size(14)
+
+```
+
+---
+
+# STL decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+us_private_service |> 
+  model(stl = STL(Employed)) |> 
+  components() |> 
+  autoplot() +
+  scale_y_continuous(labels = comma)
+
+```
+
+
+---
+
+# STL decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+us_private_service |> 
+  model(cl = classical_decomposition(Employed)) |> 
+  components() |> 
+  autoplot() +
+  scale_y_continuous(labels = comma)
+
+```
+
+---
+
+# STL decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+aus_production <- aus_production |> 
+  clean_names() |> 
+  filter(year(quarter) >= 1992)
+
+aus_production |> 
+  autoplot(beer) +
+  labs(title = "Australian beer production",
+       subtitle = "1992Q1–2010Q2",
+       y = "Megaliters",
+       caption = "Source: Hyndman and Athanasopoulos (2021).")
+
+
+
+
+
+
+```
+
+
+---
+
+# STL decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+aus_production |> 
+  model(stl = STL(beer)) |> 
+  components(stl) |> 
+  autoplot()
+
+```
+
+
+---
+
+# STL decomposition
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+aus_production |> 
+  model(cl = classical_decomposition(beer)) |> 
+  components(stl) |> 
+  autoplot()
+
+```
 
 
 ---
@@ -94,10 +259,25 @@ class: inverse, middle
 
 # Further decomposition methods
 
+<br>
 
----
 
-# Further decomposition methods
+Time series .hi-red[decomposition] methods are extensively used in statistical *offices* around the world.
+
+--
+
+<br>
+
+Nowadays, the most common one is the `X-13-ARIMA-SEATS` method.
+
+--
+
+<br><br>
+
+[`U.S. Bureau of Labor Statistics website`](https://www.bls.gov/cps/seasonal-adjustment-methodology.htm)
+
+
+
 
 
 ---
