@@ -81,7 +81,15 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 
 <br>
 
+**002: Time series decomposition**
 
+<br>
+
+  - [`Part 1`](https://youtu.be/-x5LqIZkOI4)
+  - [`Part 2`](https://youtu.be/sGR_OzCH8OE)
+
+
+<br>
 
 ## Problem Sets
 
