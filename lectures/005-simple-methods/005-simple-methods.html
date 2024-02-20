@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Benchmark forecasting methods]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="005-simple-methods_files/header-attrs/header-attrs.js"></script>
+    <link href="005-simple-methods_files/remark-css/default.css" rel="stylesheet" />
+    <link href="005-simple-methods_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="005-simple-methods_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Benchmark forecasting methods]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 2, section 2.7`](https://otexts.com/fpp3/perspective.html)
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 6`](https://otexts.com/fpp3/simple-methods.html)
+  
+    - sections 6.2&amp;mdash;6.3.
+  
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+Now that we have been introduced to the most important .hi[visualization] and .hi-slate[decomposition] techniques, it is time to (*finally*) start doing some forecasting exercises.
+
+--
+
+&lt;br&gt;
+
+The best place to start is to .hi-blue[keep it simple].
+
+--
+
+&lt;br&gt;
+
+Thus, we begin with so-called .hi-red[benchmark] forecasting methods.
+
+---
+
+class: inverse, middle
+
+# The statistical perspective
+
+
+---
+
+# The statistical perspective
+
+
+Since any forecasting exercise involves estimating something we .hi-slate[do not know], we may consider this (these) future observation(s) as .hi-red[random variable(s)].
+
+--
+
+Recall what a random variable is:
+
+  &gt; A .hi-red[random variable] is a variable whose possible values are numerical outcomes of a *random phenomenon*.
+  
+--
+
+&lt;br&gt;
+
+As one tries to forecast *further* in the future, the more .hi-blue[uncertain] the results are.
+
+--
+
+Given that, the usual procedure is to present the .hi[average] value within the range of possible values the random variable we are trying to forecast could take.
+
+--
+
+In addition, a forecast is often accompanied by a .hi-slate[prediction interval] giving a range of values the random variable could take with relatively *high probability*.
+
+---
+
+# The statistical perspective
+
+If we want to forecast the future values of a variable *y&lt;sub&gt;t&lt;/sub&gt;*, we will usually do so based on some set of .hi-blue[information].
+
+--
+
+This set of information may include *personal beliefs*, *past observations* of this variable, and/or values of *other variables* we assume may influence *y&lt;sub&gt;t&lt;/sub&gt;*.
+
+--
+
+Let us call this information the .hi-slate[information set], `\(\mathcal{I}\)`.
+
+--
+
+&lt;br&gt;
+
+Thus writing `\(y_t | \mathcal{I}\)` means "*the random variable* `\(y_t\)` *given our information set* `\(\mathcal{I}\)`."
+
+
+
+--
+
+Finally, the set of values that this random variable could take, along with their relative probabilities, is known as the probability distribution of `\(y_t | \mathcal{I}\)`. 
+
+--
+
+In forecasting, the above is called the .hi-slate[forecast distribution].
+
+
+---
+
+# The statistical perspective
+
+And we will establish our notation for forecasting by using a "*hat*" symbol `\((\hat{})\)` denoting a .hi-blue[fitted/estimated point forecast] value (usually the average).
+
+--
+
+So `\(\hat{y}_t\)` is the (average) point forecast value of the forecast distribution of `\(y_t | \mathcal{I}\)`, meaning the average of the possible values that `\(y_t\)` could take given everything we know.
+
+--
+
+In case we want to be more .b[explicit] about our information set `\(\mathcal{I}\)`, we may write, for example,
+
+$$
+`\begin{aligned}
+\hat{y}_{t | t-1}
+\end{aligned}`
+$$
+
+to denote that we are forecasting variable *y* using information from its past observations `\((y_{t-j,...,t-1})\)`.
+
+
+--
+
+In a similar way,
+
+$$
+`\begin{aligned}
+\hat{y}_{T + h| T}
+\end{aligned}`
+$$
+
+means that we are forecasting variable *y* *h* steps (periods) ahead, based on its observations up to time *T*.
+
+
+---
+
+class: inverse, middle
+
+# Benchmark forecasting methods
+
+---
+
+# Benchmark forecasting methods
+
+When producing forecasts, we may test several different models and approaches.
+
+--
+
+However, one way to test the .hi[efficiency] of these models is to *compare* them to very simple methods.
+
+--
+
+We will explore four of these ".hi-red[benchmark]" forecasting models, which will provide a basic reference upon which we should improve our more sophisticated models.
+
+--
+
+&lt;br&gt;
+
+These are:
+
+  1. The .b[mean] method;
+  2. The .b[naïve] method;
+  3. The .b[seasonal naïve] method;
+  4. The .b[drift] method.
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The mean method]:
+
+The .hi-blue[mean] method, as the name suggests, will produce forecasts which are equal to the .hi-red[average] value of the historical data.
+
+--
+
+Let the historical data (i.e., the information set `\(\mathcal{I}\)`) be denoted by *(y&lt;sub&gt;1&lt;/sub&gt;,..., y&lt;sub&gt;T&lt;/sub&gt;)*.
+
+--
+
+&lt;br&gt;
+
+Then, the forecasts may be written as
+
+$$
+`\begin{aligned}
+\hat{y}_{T + h| T} = \bar{y} = \dfrac{\displaystyle\sum_{j=1}^{T}y_j}{T}
+\end{aligned}`
+$$
+---
+
+# Benchmark forecasting methods
+
+- .b[The mean method]:
+
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+The .hi[naïve] method is based on producing forecasts whose values are simply equal to the .hi-red[last] observation:
+
+--
+
+$$
+`\begin{aligned}
+\hat{y}_{T + h| T} = y_T
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+Despite its *simplicity*, it may be well-suited for when the data follows a .hi-slate[random walk] process.
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+A .hi-slate[random walk] process can be defined as follows:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = y_{t-1} + \varepsilon_t
+\end{aligned}`
+$$
+
+
+--
+
+where `\(\varepsilon_t\)` is a .hi-blue[random] component following a white noise process (i.e., not .hi-orange[autocorrelated]).
+
+--
+
+&lt;br&gt;
+
+The term .hi-slate[random walk] comes from the fact that the value of the time series at time *t* is the value of the series at time *t-1* plus a completely .hi-red[random movement] determined by `\(\varepsilon_t\)`.
+
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The seasonal naïve method]:
+
+When the data are .hi-red[highly seasonal], the *naïve* method can be improved by including a .hi-blue[seasonal] component.
+
+--
+
+This way, each forecast will be *equal* to the .hi[last observed value] from the .hi-slate[same season].
+
+  - e.g., the same *month* of the *previous year*, the same *quarter* of the* previous year*, and so on.
+
+
+
+--
+
+&lt;br&gt;
+
+More formally,
+
+
+$$
+`\begin{aligned}
+\hat{y}_{T + h| T} = y_{T+h-m(k+1)}
+\end{aligned}`
+$$
+
+where *m* is the seasonal period, and `\(k=(h-1)/m\)`.
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The seasonal naïve method]:
+
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The drift method]:
+
+
+The .hi[drift] method expands on the naïve model by allowing the forecasts to .hi-blue[increase or decrease] over time.
+
+--
+
+This *change* over time is called the .hi[drift].
+
+--
+
+The drift term is set to be the *average change seen in the historical data*.
+
+--
+
+Formally,
+
+$$
+`\begin{aligned}
+\hat{y}_{T + h| T} = y_T + \dfrac{h}{T-1}\displaystyle\sum_{t=2}^T(y_t-y_{t-1}) = y_T+h\bigg(\dfrac{y_T-y_1}{T-1}\bigg)
+\end{aligned}`
+$$
+
+--
+
+This formula is equivalent to drawing a .hi-red[line] between the first and last observations, and *extrapolating* it into the future.
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The drift method]:
+
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Benchmark forecasting methods
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# A second example
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# A second example
+
+&lt;img src="005-simple-methods_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Residual analysis
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

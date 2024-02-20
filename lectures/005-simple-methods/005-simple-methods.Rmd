@@ -1,0 +1,608 @@
+---
+title: ".b[Benchmark forecasting methods]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3, MetBrewer)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 12,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+  - [`Hyndman & Athanasopoulos, ch. 2, section 2.7`](https://otexts.com/fpp3/perspective.html)
+
+  - [`Hyndman & Athanasopoulos, ch. 6`](https://otexts.com/fpp3/simple-methods.html)
+  
+    - sections 6.2&mdash;6.3.
+  
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+<br>
+
+Now that we have been introduced to the most important .hi[visualization] and .hi-slate[decomposition] techniques, it is time to (*finally*) start doing some forecasting exercises.
+
+--
+
+<br>
+
+The best place to start is to .hi-blue[keep it simple].
+
+--
+
+<br>
+
+Thus, we begin with so-called .hi-red[benchmark] forecasting methods.
+
+---
+
+class: inverse, middle
+
+# The statistical perspective
+
+
+---
+
+# The statistical perspective
+
+
+Since any forecasting exercise involves estimating something we .hi-slate[do not know], we may consider this (these) future observation(s) as .hi-red[random variable(s)].
+
+--
+
+Recall what a random variable is:
+
+  > A .hi-red[random variable] is a variable whose possible values are numerical outcomes of a *random phenomenon*.
+  
+--
+
+<br>
+
+As one tries to forecast *further* in the future, the more .hi-blue[uncertain] the results are.
+
+--
+
+Given that, the usual procedure is to present the .hi[average] value within the range of possible values the random variable we are trying to forecast could take.
+
+--
+
+In addition, a forecast is often accompanied by a .hi-slate[prediction interval] giving a range of values the random variable could take with relatively *high probability*.
+
+---
+
+# The statistical perspective
+
+If we want to forecast the future values of a variable *y<sub>t</sub>*, we will usually do so based on some set of .hi-blue[information].
+
+--
+
+This set of information may include *personal beliefs*, *past observations* of this variable, and/or values of *other variables* we assume may influence *y<sub>t</sub>*.
+
+--
+
+Let us call this information the .hi-slate[information set], $\mathcal{I}$.
+
+--
+
+<br>
+
+Thus writing $y_t | \mathcal{I}$ means "*the random variable* $y_t$ *given our information set* $\mathcal{I}$."
+
+
+
+--
+
+Finally, the set of values that this random variable could take, along with their relative probabilities, is known as the probability distribution of $y_t | \mathcal{I}$. 
+
+--
+
+In forecasting, the above is called the .hi-slate[forecast distribution].
+
+
+---
+
+# The statistical perspective
+
+And we will establish our notation for forecasting by using a "*hat*" symbol $(\hat{})$ denoting a .hi-blue[fitted/estimated point forecast] value (usually the average).
+
+--
+
+So $\hat{y}_t$ is the (average) point forecast value of the forecast distribution of $y_t | \mathcal{I}$, meaning the average of the possible values that $y_t$ could take given everything we know.
+
+--
+
+In case we want to be more .b[explicit] about our information set $\mathcal{I}$, we may write, for example,
+
+$$
+\begin{aligned}
+\hat{y}_{t | t-1}
+\end{aligned}
+$$
+
+to denote that we are forecasting variable *y* using information from its past observations $(y_{t-j,...,t-1})$.
+
+
+--
+
+In a similar way,
+
+$$
+\begin{aligned}
+\hat{y}_{T + h| T}
+\end{aligned}
+$$
+
+means that we are forecasting variable *y* *h* steps (periods) ahead, based on its observations up to time *T*.
+
+
+---
+
+class: inverse, middle
+
+# Benchmark forecasting methods
+
+---
+
+# Benchmark forecasting methods
+
+When producing forecasts, we may test several different models and approaches.
+
+--
+
+However, one way to test the .hi[efficiency] of these models is to *compare* them to very simple methods.
+
+--
+
+We will explore four of these ".hi-red[benchmark]" forecasting models, which will provide a basic reference upon which we should improve our more sophisticated models.
+
+--
+
+<br>
+
+These are:
+
+  1. The .b[mean] method;
+  2. The .b[naïve] method;
+  3. The .b[seasonal naïve] method;
+  4. The .b[drift] method.
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The mean method]:
+
+The .hi-blue[mean] method, as the name suggests, will produce forecasts which are equal to the .hi-red[average] value of the historical data.
+
+--
+
+Let the historical data (i.e., the information set $\mathcal{I}$) be denoted by *(y<sub>1</sub>,..., y<sub>T</sub>)*.
+
+--
+
+<br>
+
+Then, the forecasts may be written as
+
+$$
+\begin{aligned}
+\hat{y}_{T + h| T} = \bar{y} = \dfrac{\displaystyle\sum_{j=1}^{T}y_j}{T}
+\end{aligned}
+$$
+---
+
+# Benchmark forecasting methods
+
+- .b[The mean method]:
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=7, echo=FALSE}
+
+air <- read_csv("air_passengers.csv")
+
+
+air_ts <- air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date)
+
+
+air_mean <- air_ts |> 
+  model(mean_model = MEAN(passengers))
+
+
+air_mean_fc <- air_mean  |> 
+  forecast(h = 24)
+
+air_mean_fc |> 
+  autoplot(air_ts, level = NULL, color = "#974c90", linewidth = 1.1) +
+  labs(title = "Monthly air passsengers, Jan 1949 – Dec 1960",
+       subtitle = "24-month forecast using the average (mean) method") +
+  labs(y = "Passengers",
+       x = "")
+  
+
+```
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+The .hi[naïve] method is based on producing forecasts whose values are simply equal to the .hi-red[last] observation:
+
+--
+
+$$
+\begin{aligned}
+\hat{y}_{T + h| T} = y_T
+\end{aligned}
+$$
+
+--
+
+<br><br>
+
+Despite its *simplicity*, it may be well-suited for when the data follows a .hi-slate[random walk] process.
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+A .hi-slate[random walk] process can be defined as follows:
+
+<br>
+
+$$
+\begin{aligned}
+y_t = y_{t-1} + \varepsilon_t
+\end{aligned}
+$$
+
+
+--
+
+where $\varepsilon_t$ is a .hi-blue[random] component following a white noise process (i.e., not .hi-orange[autocorrelated]).
+
+--
+
+<br>
+
+The term .hi-slate[random walk] comes from the fact that the value of the time series at time *t* is the value of the series at time *t-1* plus a completely .hi-red[random movement] determined by $\varepsilon_t$.
+
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=7, echo=FALSE}
+
+set.seed(166) 
+w = rnorm(200)
+x = cumsum(w) 
+
+
+x |> 
+  as_tibble() |> 
+  mutate(t = row_number()) |> 
+  ggplot(aes(y = value, x = t)) +
+  geom_line() +
+  labs(title = "A random walk process")
+
+```
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The naïve method]:
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=7, echo=FALSE}
+
+air_naive <- air_ts |> 
+  model(naive_model = NAIVE(passengers))
+
+
+air_naive_fc <- air_naive  |> 
+  forecast(h = 24)
+
+air_naive_fc |> 
+  autoplot(air_ts, level = NULL, color = "#974c90", linewidth = 1.1) +
+  labs(title = "Monthly air passsengers, Jan 1949 – Dec 1960",
+       subtitle = "24-month forecast using the naïve method") +
+  labs(y = "Passengers",
+       x = "")
+
+```
+
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The seasonal naïve method]:
+
+When the data are .hi-red[highly seasonal], the *naïve* method can be improved by including a .hi-blue[seasonal] component.
+
+--
+
+This way, each forecast will be *equal* to the .hi[last observed value] from the .hi-slate[same season].
+
+  - e.g., the same *month* of the *previous year*, the same *quarter* of the* previous year*, and so on.
+
+
+
+--
+
+<br>
+
+More formally,
+
+
+$$
+\begin{aligned}
+\hat{y}_{T + h| T} = y_{T+h-m(k+1)}
+\end{aligned}
+$$
+
+where *m* is the seasonal period, and $k=(h-1)/m$.
+
+
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The seasonal naïve method]:
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=7, echo=FALSE}
+
+air_snaive <- air_ts |> 
+  model(snaive_model = SNAIVE(passengers))
+
+
+air_snaive_fc <- air_snaive  |> 
+  forecast(h = 24)
+
+air_snaive_fc |> 
+  autoplot(air_ts, level = NULL, color = "#974c90", linewidth = 1.1) +
+  labs(title = "Monthly air passsengers, Jan 1949 – Dec 1960",
+       subtitle = "24-month forecast using the seasonal naïve method") +
+  labs(y = "Passengers",
+       x = "")
+
+```
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The drift method]:
+
+
+The .hi[drift] method expands on the naïve model by allowing the forecasts to .hi-blue[increase or decrease] over time.
+
+--
+
+This *change* over time is called the .hi[drift].
+
+--
+
+The drift term is set to be the *average change seen in the historical data*.
+
+--
+
+Formally,
+
+$$
+\begin{aligned}
+\hat{y}_{T + h| T} = y_T + \dfrac{h}{T-1}\displaystyle\sum_{t=2}^T(y_t-y_{t-1}) = y_T+h\bigg(\dfrac{y_T-y_1}{T-1}\bigg)
+\end{aligned}
+$$
+
+--
+
+This formula is equivalent to drawing a .hi-red[line] between the first and last observations, and *extrapolating* it into the future.
+
+---
+
+# Benchmark forecasting methods
+
+- .b[The drift method]:
+
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=7, echo=FALSE}
+
+air_drift <- air_ts |> 
+  model(drift_model = RW(passengers ~ drift()))
+
+air_drift_fc <- air_drift |> 
+  forecast(h = 24)
+
+
+air_drift_fc |> 
+  autoplot(air_ts, level = NULL, color = "#974c90", linewidth = 1.1) +
+  labs(title = "Monthly air passsengers, Jan 1949 – Dec 1960",
+       subtitle = "24-month forecast using the drift method") +
+  labs(y = "Passengers",
+       x = "")
+
+
+```
+
+---
+
+# Benchmark forecasting methods
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+
+air_fit <- air_ts |> 
+  model(mean_model = MEAN(passengers),
+        naive_model = NAIVE(passengers),
+        snaive_model = SNAIVE(passengers),
+        drift_model = RW(passengers ~ drift()))
+
+air_fc <- air_fit |> 
+  forecast(h = 24)
+
+air_fc |> 
+  autoplot(air_ts, level = NULL, linewidth = 1.1) +
+  labs(title = "Forecasts for monthly air passengers, Jan 1949 – Dec 1960",
+       y = "Passengers",
+       x = "") +
+  guides(colour = guide_legend(title = "Forecast")) +
+  easy_plot_legend_size(12) +
+  scale_color_met_d("Derain")
+
+```
+
+
+---
+
+# A second example
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+dex <- read_csv("DEXUSEU.csv") |> 
+  clean_names() |> 
+  rename(exch = dexuseu)
+
+
+dex_ts <- dex |> 
+  mutate(exch = as.double(exch)) |> 
+  as_tsibble(index = date) |> 
+  mutate(day = row_number()) |>
+  update_tsibble(index = day, regular = TRUE)
+
+dex_ts |> 
+  autoplot(exch) +
+  labs(title = "U.S. Dollars to Euro spot exchange rate",
+       subtitle = "Feb 2019 – Feb 2024 (daily)",
+       caption = "Source: U.S. Federal Reserve System",
+       y = "U.S. Dollars to 1 Euro",
+       x = "")
+
+
+```
+
+
+---
+
+# A second example
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8, echo=FALSE}
+
+
+dex_fit <- dex_ts |> 
+  model(mean_model = MEAN(exch),
+        naive_model = NAIVE(exch),
+        drift_model = RW(exch ~ drift()))
+
+dex_fc <- dex_fit |> 
+  forecast(h = 30)
+
+dex_fc |> 
+  autoplot(dex_ts, level = NULL, linewidth = 1.1) +
+  labs(title = "Forecasts for U.S. Dollars to Euro spot exchange rate",
+       subtitle = "Feb 2019 – Feb 2024 (daily)",
+       y = "U.S. Dollars to 1 Euro",
+       x = "") +
+  guides(colour = guide_legend(title = "Forecast")) +
+  easy_plot_legend_size(12) 
+
+```
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Residual analysis
+
+---
+exclude: true
+
+
+
+
+
