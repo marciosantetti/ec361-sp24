@@ -157,6 +157,14 @@ us_private_service <- us_private_service |>
          ma9 = roll_mean(Employed, n = 9, align = "center", fill = NA),
          ma15 = roll_mean(Employed, n = 15, align = "center", fill = NA))
 
+
+
+
+
+
+
+
+
 us_private_service <- us_private_service |> 
   select(-Series_ID)
 
