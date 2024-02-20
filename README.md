@@ -58,7 +58,7 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
-**007: Benchmark forecasting models**
+**007: Benchmark forecasting methods**
 
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/005-simple-methods/005-simple-methods.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/005-simple-methods/005-simple-methods.pdf)
 
