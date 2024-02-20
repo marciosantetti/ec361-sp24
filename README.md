@@ -52,6 +52,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**006: Time series decomposition II**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/004-decomposition/004-decomposition-2.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/004-decomposition/004-decomposition-2.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
@@ -75,7 +81,15 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 
 <br>
 
+**002: Time series decomposition**
 
+<br>
+
+  - [`Part 1`](https://youtu.be/-x5LqIZkOI4)
+  - [`Part 2`](https://youtu.be/sGR_OzCH8OE)
+
+
+<br>
 
 ## Problem Sets
 
