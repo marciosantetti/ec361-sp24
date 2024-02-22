@@ -64,7 +64,11 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**008: Forecast residual analysis**
 
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/006-residuals/006-residuals.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/006-residuals/006-residuals.pdf)
+
+<br>
 
 ## Applied lectures
 
