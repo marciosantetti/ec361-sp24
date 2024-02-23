@@ -258,6 +258,31 @@ dex_aug
 
 ```
 
+---
+class: clear
+
+# An example
+
+```{r, message=FALSE, dev = "svg", warning=FALSE, fig.height=8.5, fig.width=14, echo=FALSE}
+dex_aug |> 
+  ggplot(aes(x = day, y = exch)) +
+  geom_line(aes(color = "Original data"), linewidth = 0.6) +
+  geom_line(aes(y = .fitted, color = "Fitted/Estimated values"), linewidth = 0.9) +
+  scale_color_met_d("Veronese") +
+  easy_add_legend_title("Series") +
+  labs(title = "U.S. Dollars to Euro spot exchange rate, Jan 2023 – Feb 2024 (daily)",
+       subtitle = "Fit from the naïve method",
+       caption = "Source: U.S. Federal Reserve System.",
+       y = "U.S. Dollars to 1 Euro",
+       x = "") +
+  easy_plot_legend_size(13) +
+  easy_plot_subtitle_size(13) +
+  easy_y_axis_title_size(13) +
+  easy_plot_caption_size(13) +
+  easy_legend_at("top")
+
+```
+
 
 ---
 

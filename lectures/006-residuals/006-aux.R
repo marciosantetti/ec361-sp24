@@ -4,6 +4,7 @@ library(fpp3)
 library(scales)
 library(hrbrthemes)
 library(ggeasy)
+library(MetBrewer)
 
 
 theme_set(theme_ipsum())
@@ -63,6 +64,15 @@ dex_fc |>
 
 dex_aug <- dex_fit |> 
   augment()
+
+
+dex_aug |> 
+  ggplot(aes(x = day, y = exch)) +
+  geom_line(aes(color = "Original data"), linewidth = 0.6) +
+  geom_line(aes(y = .fitted, color = "Fitted/Estimated values"), linewidth = 0.9) +
+  scale_color_met_d("Veronese") +
+  easy_add_legend_title("Series") +
+  easy_plot_legend_size(13)
 
 
 dex_aug |> 
