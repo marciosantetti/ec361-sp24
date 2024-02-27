@@ -1,0 +1,483 @@
+---
+title: ".b[Forecasting with transformations and decompositions]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3, MetBrewer)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 8,
+  fig.width = 12.5,
+  warning = F,
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+
+  - [`Hyndman & Athanasopoulos, ch. 6`](https://otexts.com/fpp3/ftransformations.html)
+  
+    - sections 6.6&mdash;6.7.
+  
+  
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+<br>
+
+Before we move on into further exploring benchmark forecasting models, let us incorporate our lectures on .hi[data transformation] and .hi-red[decomposition methods] into forecasting exercises.
+
+--
+
+Regarding .hi-blue[transformations], we use them whenever some adjustment is necessary to either stabilize the .hi-red[variance] of our variable (e.g., *log-transforming*) or make it .hi-blue[better suited] for our practices (e.g., *adjusting for inflation*).
+
+--
+
+Second, learning time series .hi-slate[decomposition] methods allowed us to *break down* our variables into its *trend-cycle*, *seasonal*, and *remainder* components.
+
+--
+
+One of the main advantages of decompositions is obtaining .hi[seasonally adjusted] data.
+
+--
+
+- But .hi[how] to forecast with transformations and decompositions?
+
+
+---
+class: inverse, middle
+
+# Forecasting with transformations
+
+---
+
+# Forecasting with transformations
+
+<br>
+
+When using .hi-red[transformations], our forecasts will be produced on the *transformed* variable(s).
+
+--
+
+But for better communication, we should .hi-slate[*back-transform*] the data to bring the forecasts to the .hi[original scale].
+
+--
+
+For our purposes, the `{fable}` package handles this back-transformation automatically, as long as we .hi[explicitly] inform the transformation we have used in the model specification.
+
+--
+
+Let us better grasp this idea through an example.
+
+
+---
+
+# Forecasting with transformations
+
+```{r, echo=FALSE, dev = "svg"}
+
+air <- read_csv("air_passengers.csv")
+
+
+air_ts <- air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date)
+
+air_ts |> 
+  ggplot(aes(x = date, y = passengers)) +
+  geom_line() +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+
+---
+
+# Forecasting with transformations
+
+```{r, echo=FALSE, dev = "svg"}
+
+
+
+air_ts |> 
+  ggplot(aes(x = date, y = log(passengers))) +
+  geom_line() +
+  labs(title = "International airline passengers (logs)",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "log(passengers)") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+
+
+---
+
+# Forecasting with transformations
+
+<br>
+
+Recalling:
+
+- For our purposes, the `{fable}` package handles this back-transformation automatically, as long as we .hi[explicitly] inform the transformation we have used in the model specification.
+
+
+--
+
+<br>
+
+```{r}
+air_snaive <- air_ts |> 
+  model(snaive_model = RW(log(passengers) ~ drift() + lag(12))) ## Fitting a seasonal naive model with drift.
+```
+
+
+---
+class: clear
+
+# Forecasting with transformations
+
+
+```{r, echo=FALSE, dev = "svg", fig.height=8.5}
+
+
+
+air_snaive |> 
+  augment() |> 
+  ggplot(aes(x = date, y = passengers)) +
+  geom_line(aes(color = "Raw data"), linewidth = .6) +
+  geom_line(aes(y = .fitted, color = "Fitted values"), linewidth = .9) +
+  labs(title = "Fitting a seasonal naive model with drift",
+       subtitle = "Air passengers data (in logs)",
+       y = "log(passengers)",
+       x = "") +
+  scale_color_met_d("Greek") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+```
+
+
+---
+
+# Forecasting with transformations
+
+
+```{r, echo=FALSE, dev = "svg"}
+
+air_snaive_fc <- air_snaive |> 
+  forecast(h = 24)
+
+p1 <- air_snaive_fc |> 
+  autoplot(air_ts, level = 95, linewidth = .9, color = "#421a92")
+
+
+p1 +
+  labs(title = "24-month ahead forecast",
+       y = "Passengers",
+       x = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+  
+
+```
+
+
+---
+
+# Forecasting with transformations
+
+<br>
+
+Now let us compare the .hi-slate[same model], but .hi-red[without] a transformation:
+
+<br>
+
+```{r}
+air_snaive_no <- air_ts |> 
+  model(snaive_model = RW(passengers ~ drift() + lag(12)))
+```
+
+
+
+---
+
+# Forecasting with transformations
+
+```{r, echo=FALSE, dev = "svg"}
+air_snaive_no_fc <- air_snaive_no |> 
+  forecast(h = 24)
+
+p2  <- air_snaive_no_fc |> 
+  autoplot(air_ts, level = 95, linewidth = .9, color = "#ed52c3")
+
+
+p2 +
+  labs(title = "24-month ahead forecast (no transformation)",
+       y = "Passengers",
+       x = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+```
+
+
+---
+
+# Forecasting with transformations
+
+
+```{r, echo=FALSE, dev = "svg"}
+
+p1 +
+  labs(title = "24-month ahead forecast",
+       y = "Passengers",
+       x = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+  
+
+```
+
+
+
+
+---
+
+# Forecasting with transformations
+
+<br>
+
+If a transformation has been used, then the prediction interval is first computed on the *transformed* scale, and the end points are .hi-red[back-transformed] to give a prediction interval on the original scale.
+
+--
+
+<br>
+
+Thus, forecasts produced with transformations may generate prediction intervals that are .hi-blue[not symmetric].
+
+--
+
+<br>
+
+Transformations sometimes make little difference to the point forecasts, but have a large effect on .hi-slate[prediction intervals].
+
+
+---
+class: inverse, middle
+
+# Forecasting with decompositions
+
+
+---
+
+# Forecasting with decompositions
+
+Recalling a decomposed time series:
+
+$$
+\begin{aligned}
+y_t = \hat{T}_t + \hat{S}_t + \hat{R}_t
+\end{aligned}
+$$
+
+--
+
+<br>
+
+where $\hat{T}_t + \hat{R}_t$ make up the .hi-slate[seasonally adjusted] component, while $\hat{S}_t$ alone is the .hi-red[seasonal] piece.
+
+--
+
+<br>
+
+When one wants to forecast a decomposed time series, the seasonally adjusted and seasonal components are forecast .hi-red[separately], then *added together*.
+
+--
+
+For the .hi-red[seasonal] component, the standard assumption is to use a .hi-slate[seasonal naïve] method, whereas any other .hi-blue[non-seasonal model] can be applied to forecast the .hi[seasonally adjusted] portion.
+
+--
+
+Let us see an *example.*
+
+---
+
+# Forecasting with decompositions
+
+```{r, echo=FALSE, dev = "svg"}
+
+job <- read_csv("job_openings.csv") |> 
+  clean_names()
+
+job <- job |> 
+  rename(openings = jtujol)
+
+
+job_ts <- job |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date)
+
+
+job_ts |> 
+  autoplot(openings) + 
+  labs(title = "U.S. job openings: Total nonfarm",
+       subtitle = "12/2000–12/2023",
+       y = "Thousands",
+       caption = "Source: U.S. Bureau of Labor Statistics.") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+```
+
+---
+
+# Forecasting with decompositions
+
+
+```{r}
+job_decomp <- job_ts |> 
+  model(stlf = decomposition_model(STL(openings), ## applying an STL decomposition.
+                                   RW(season_adjust ~ drift()), ## seasonally adjusted portion.
+                                   SNAIVE(season_year))) ## can leave blank if we want.
+```
+
+
+---
+
+# Forecasting with decompositions
+
+
+```{r, echo=FALSE, dev = "svg"}
+job_decomp |> 
+  forecast(h = 24) |> 
+  autoplot(job_ts, level = 95, linewidth = 0.8) +
+  labs(title = "24-month ahead forecast",
+       subtitle = "U.S. job openings",
+       y = "Openings (thousands)") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+```
+
+
+
+---
+class: clear 
+
+# Forecasting with decompositions
+
+
+As in any other forecasting procedure, we should check our .hi-red[residuals]:
+
+
+```{r, echo=FALSE, dev = "svg"}
+job_decomp |> 
+  gg_tsresiduals()
+```
+
+
+
+---
+
+# Forecasting with decompositions
+
+
+```{r, highlight.output = 4}
+job_decomp |> 
+  augment() |> 
+  features(.innov, box_pierce, lags = 2 * 12)
+```
+
+
+```{r, highlight.output = 4}
+job_decomp |> 
+  augment() |> 
+  features(.innov, ljung_box, lags = 2 * 12)
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Forecast accuracy measures
+
+---
+exclude: true
+
+
+
+
+
