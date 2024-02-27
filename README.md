@@ -70,6 +70,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**009: Forecasting with transformations and decompositions**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-fc-decomp.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-fc-decomp.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
