@@ -100,6 +100,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
   - [`Part 1`](https://youtu.be/-x5LqIZkOI4)
   - [`Part 2`](https://youtu.be/sGR_OzCH8OE)
 
+<br>
+
+**003: Benchmark forecasting models**
+
+  - [`Part 1`](https://youtu.be/a1U_ltTWHKU)
+  - [`Part 2`](https://youtu.be/jXJ8S0WMjrY)
+
 
 <br>
 
