@@ -74,6 +74,13 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-fc-decomp.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-fc-decomp.pdf)
 
+
+<br>
+
+**010: Forecast accuracy measures**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-accuracy-measures.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/007-accuracy/007-accuracy-measures.pdf)
+
 <br>
 
 ## Applied lectures
