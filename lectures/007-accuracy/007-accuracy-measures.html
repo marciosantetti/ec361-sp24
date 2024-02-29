@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Forecast accuracy measures]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="007-accuracy-measures_files/header-attrs/header-attrs.js"></script>
+    <link href="007-accuracy-measures_files/remark-css/default.css" rel="stylesheet" />
+    <link href="007-accuracy-measures_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="007-accuracy-measures_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Forecast accuracy measures]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 6`](https://otexts.com/fpp3/accuracy.html)
+  
+    - section 6.8.
+    
+    - sections 6.8 &amp; 6.9 are *optional readings*. 
+
+
+    
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+One of the main challenges when estimating forecasting models is that we are trying to predict .hi-blue[unknown] (future) values of a variable.
+
+--
+
+&lt;br&gt;
+
+We usually do not have the .hi-red[luxury] of *waiting* until we see these future values so we can compare our predictions with the real data.
+
+--
+
+&lt;br&gt;
+
+Fortunately, there are some techniques we can apply so we can evaluate the .hi-orange[accuracy] of our forecasts.
+
+
+---
+class: inverse, middle
+
+# Point forecast accuracy
+
+---
+
+# Point forecast accuracy
+
+The *basic idea* of .hi-red[forecast accuracy] measures is that we can evaluate how well a model performs on .hi[new data] that were .hi[not used] when fitting the model.
+
+--
+
+Given that, the procedure is to .hi-blue[split] the data set into two portions:
+
+  - The **training** set;
+  
+  - The **test** set.
+  
+--
+
+&lt;br&gt;
+
+The .b[training] set is used to *estimate* any parameters of a forecasting method, while the .b[test] set is *left out* of the estimation step, being used to evaluate its *accuracy.*
+
+--
+
+The test set, then, should provide a .hi-red[reliable indication] of how well the model is likely to forecast on new data.
+
+
+
+
+
+
+
+---
+
+# Point forecast accuracy
+
+&lt;br&gt;
+
+.center[
+&lt;img src="tt.png", width = "70%"&gt;
+]
+
+--
+
+&lt;br&gt;
+
+
+In terms of the .hi-slate[size of the split], a usual procedure is to leave .b[20%] of the total sample length for the test set.
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+Ideally, the test set should be *as large as the maximum forecast horizon required*. 
+
+
+---
+class: middle, inverse
+
+# Forecast errors
+
+---
+
+# Forecast errors
+
+A .hi-red[forecast error] is the difference between an *observed* value and its *forecast*.
+
+--
+
+Formally, 
+
+$$
+`\begin{aligned}
+e_{T+h} = y_{T+h} - \hat{y}_{T+h \ |\ T}
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+--
+
+One .hi-blue[crucial] point:
+
+  - **Forecast errors are different from model residuals**!
+  
+--
+
+&lt;br&gt;
+
+.hi-slate[Residuals] are calculated on the *training* set while forecast .hi-red[errors] are calculated on the *test* set.
+
+
+---
+
+# Forecast errors
+
+The first category of forecast error measures are the so-called .hi-red[scale-dependent errors].
+
+--
+
+These are located in the same .hi-blue[scale] as the original data (e.g., dollars, persons, percent).
+
+--
+
+The two main scale-dependent error measures are the .hi-red[Mean Absolute Error (MAE)] and the .hi-blue[Root Mean Squared Error (RMSE)].
+
+--
+
+$$
+`\begin{aligned}
+\text{MAE} = \text{mean}(|e_t|)
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{RMSE} = \sqrt{\text{mean}(e_t^2)}
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+When *comparing* different models, we would like to choose the one that .hi[minimizes] theses errors.
+
+
+---
+
+# Forecast errors
+
+Another category of forecast errors are .hi-red[percentage errors].
+
+--
+
+These are .hi-blue[unit-free], and thus can be compared across different data sets.
+
+--
+
+The most common percentage error measure is the .hi-blue[Mean Absolute Percentage Error (MAPE)]:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{MAPE} = \text{mean}(|p_t|)
+\end{aligned}`
+$$
+
+where `\(p_t = 100e_t/y_t\)`.
+
+--
+
+&lt;br&gt;
+
+One key .b[drawback] of this measure is that it is undefined for data points equal to zero `\(y_t = 0\)`.
+
+---
+
+# Forecast errors
+
+The last category involves .hi-red[scaled errors].
+
+--
+
+The main purpose of scaled errors is to provide comparison across different data sets (as with percentage errors), but not having the same issues as the previous two categories.
+
+--
+
+For a .hi-blue[non-seasonal] time series, a useful way to define a scaled error uses *naïve forecasts*: 
+
+$$
+`\begin{aligned}
+q_j = \dfrac{e_j}{\dfrac{1}{T-1}\displaystyle\sum_{t=2}^T |y_t - y_{t-1}|}
+\end{aligned}`
+$$
+
+
+--
+
+For .hi-red[seasonal data], the formula looks like the following (*m* is the seasonal period):
+
+$$
+`\begin{aligned}
+q_j = \dfrac{e_j}{\dfrac{1}{T-m}\displaystyle\sum_{t=m+1}^T |y_t - y_{t-m}|}
+\end{aligned}`
+$$
+
+---
+
+# Forecast errors
+
+&lt;br&gt;
+
+The value of the error `\(q_j\)` computed by the previous formula is .hi-slate[scale-free].
+
+--
+
+&lt;br&gt;
+
+Then, we are able to calculate the .hi-blue[Mean Absolute Scaled Error (MASE)]:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{MASE} = \text{mean}(|q_j|)
+\end{aligned}`
+$$
+
+---
+class: inverse, middle
+
+# An example
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+
+
+```r
+## Defining the training set:
+
+job_train &lt;- job_ts |&gt; 
+  filter_index(. ~ "2018-12-01")
+
+
+## Estimating several benchmark models:
+
+job_fit &lt;- job_train |&gt; 
+  model(mean_model = MEAN(openings),
+        naive_model = NAIVE(openings),
+        snaive_model = SNAIVE(openings),
+        drift_model = RW(openings ~ drift()),
+        snaive_with_drift = RW(openings ~ drift() + lag(12)))
+
+
+## 24-month ahead forecast:
+
+job_fc &lt;- job_fit |&gt; 
+  forecast(h = 24)
+```
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# An example
+
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# An example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# An example
+
+
+```r
+## All accuracy measures:
+
+
+job_fc |&gt; 
+  accuracy(job_ts)
+```
+
+```
+#&gt; # A tibble: 5 × 10
+#&gt;   .model            .type     ME  RMSE   MAE    MPE  MAPE  MASE RMSSE  ACF1
+#&gt;   &lt;chr&gt;             &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 drift_model       Test  -121.   767.  650. -3.10  10.2   1.14  1.09 0.592
+#&gt; 2 mean_model        Test  2423.  2527. 2423. 35.1   35.1   4.24  3.60 0.557
+#&gt; 3 naive_model       Test    18.5  715.  611. -0.947  9.43  1.07  1.02 0.557
+#&gt; 4 snaive_model      Test  -341.   814.  637. -6.18  10.3   1.11  1.16 0.623
+#&gt; 5 snaive_with_drift Test  -573.   971.  753. -9.73  12.2   1.32  1.38 0.669
+```
+
+
+---
+
+# An example
+
+
+```r
+## Main accuracy measures:
+
+job_fc |&gt; 
+  accuracy(job_ts) |&gt; 
+  select(.model, MAE, RMSE, MAPE, MASE)
+```
+
+```
+#&gt; # A tibble: 5 × 5
+#&gt;   .model              MAE  RMSE  MAPE  MASE
+#&gt;   &lt;chr&gt;             &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 drift_model        650.  767. 10.2   1.14
+#&gt; 2 mean_model        2423. 2527. 35.1   4.24
+#&gt; 3 naive_model        611.  715.  9.43  1.07
+#&gt; 4 snaive_model       637.  814. 10.3   1.11
+#&gt; 5 snaive_with_drift  753.  971. 12.2   1.32
+```
+
+---
+class: inverse, middle
+
+# Another example
+
+---
+
+# Another example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Another example
+
+
+```r
+## Training set:
+
+
+air_train &lt;- air_ts |&gt; 
+  filter_index(. ~ "1958-07-01")
+
+
+## Fitting different models:
+
+air_fit &lt;- air_train |&gt; 
+  model(snaive_model_drift_log = RW(log(passengers) ~ drift() + lag(12)),
+        snaive_model_log = SNAIVE(log(passengers)),
+        snaive_model_drift = RW(passengers ~ drift() + lag(12)),
+        snaive_model = SNAIVE(passengers)) 
+
+
+## Forecasting 29 months ahead:
+
+air_fc &lt;- air_fit |&gt; 
+  forecast(h = 29)
+```
+
+
+---
+
+# Another example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Another example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Another example
+
+&lt;img src="007-accuracy-measures_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Another example
+
+
+```r
+air_fc |&gt; 
+  accuracy(air_ts) |&gt; 
+  select(.model, MAE, RMSE, MAPE, MASE)
+```
+
+```
+#&gt; # A tibble: 4 × 5
+#&gt;   .model                   MAE  RMSE  MAPE  MASE
+#&gt;   &lt;chr&gt;                  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 snaive_model            64.8  75.2 14.0  2.20 
+#&gt; 2 snaive_model_drift      21.7  28.2  4.70 0.737
+#&gt; 3 snaive_model_drift_log  33.7  40.2  7.80 1.15 
+#&gt; 4 snaive_model_log        58.6  68.3 12.7  1.99
+```
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Exponential smoothing
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
