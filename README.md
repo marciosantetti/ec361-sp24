@@ -129,6 +129,7 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 
 - [`Problem Set 0`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps0-ec361-sp24.pdf) (due 02/16, 12:20 PM)
 - [`Problem Set 1`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps1-ec361-sp24%20copy.pdf) (due 03/01, 12:20 PM)
+- [`Problem Set 2`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps2-ec361-sp24.pdf) (due 03/22, 12:20 PM)
 
 
 <br>
