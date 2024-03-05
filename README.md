@@ -83,6 +83,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**011: Exponential smoothing: Introduction**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-1.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-1.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
