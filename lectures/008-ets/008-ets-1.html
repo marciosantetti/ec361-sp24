@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Exponential smoothing: Introduction]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="008-ets-1_files/header-attrs/header-attrs.js"></script>
+    <link href="008-ets-1_files/remark-css/default.css" rel="stylesheet" />
+    <link href="008-ets-1_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="008-ets-1_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Exponential smoothing: Introduction]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 8`](https://otexts.com/fpp3/expsmooth.html)
+  
+    - sections 8.1&amp;mdash;8.2.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+After studying benchmark forecasting models and some accuracy measures, it is time to move on to .hi-slate[more interesting] forecasting techniques.
+
+--
+
+&lt;br&gt;
+
+One of them is .hi-red[exponential smoothing].
+
+--
+
+&lt;br&gt;
+
+The key idea behind this method is that it generates forecasts that are .hi-slate[weighted averages] of past observations, with the weights .hi[decaying exponentially] as the observations get *older.*
+
+  - Also, .hi-slate[more recent] observation get *higher* associated weights.
+
+
+---
+class: inverse, middle
+
+# Simple exponential smoothing
+
+---
+
+# Simple exponential smoothing
+
+&lt;br&gt;&lt;br&gt;
+
+The starting point when studying exponential smoothing methods is the so-called .hi[Simple Exponential Smoothing] (SES).
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+This method is well-suited for time series with .hi-slate[no] apparent .hi-red[trend] or .hi-blue[seasonal] pattern.
+
+
+---
+
+# Simple exponential smoothing
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Simple exponential smoothing
+
+The simple exponential smoothing method can be thought of as a .hi[midpoint] between two extremes:
+
+  - The .hi-blue[mean]
+  
+  - And the .hi-red[naïve] methods.
+  
+--
+
+Recall that the .hi-blue[mean] method fits the data and predicts future values according to the the .hi-slate[average] of the series.
+
+  - Thus, all observations have the same .hi-red[weight].
+  
+--
+
+On the other hand, the .hi-red[naïve] method assumes that the .hi-slate[most recent] observation is the *only* important one, and all previous observations provide *no information for the future*.
+
+  - Thus, all the .hi-blue[weight] is given to the *most recent* observation.
+
+
+---
+
+# Simple exponential smoothing
+
+While these two benchmark methods have their logic, what simple exponential smoothing proposes is a method where .hi[larger weights] are given to .hi-red[most recent] observations, while more distant observations are to the present will be given .hi[less importance].
+
+--
+
+This way, the model is fitted to the data and forecasts are produced using .hi-blue[weighted averages], where the weights decrease *exponentially* as observations come from further in the past (i.e., the *smallest weights* are associated with the *oldest* observations).
+
+--
+
+More formally,
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\hat{y}_{T+1|T} = \alpha y_T + \alpha(1-\alpha)y_{T-1} + \alpha(1-\alpha)^2y_{T-2} + \cdot \cdot \cdot
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+where *&amp;alpha;* is called the .hi-red[smoothing parameter], lying between 0 and 1.
+
+
+---
+
+# Simple exponential smoothing
+
+.center[
+&lt;img src="weights.png", width = "80%"&gt;
+]
+
+--
+
+&lt;br&gt;
+
+
+- The smaller *&amp;alpha;* is, more weight is given to observations from the *more distant past*.
+
+--
+
+- The larger *&amp;alpha;* is, more weight is given to the *more recent observations*.
+
+--
+
+- What happens when *&amp;alpha; = 1*?
+
+
+
+---
+
+# Simple exponential smoothing
+
+Each exponential smoothing method we will study can be represented by what we call its .hi-blue[component form].
+
+--
+
+A method's component form comprises a set of .hi-red[equations] illustrating the relevant components of the model.
+
+--
+
+In the case of .hi[simple exponential smoothing], the component form has .hi-red[two pieces]:
+
+--
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{Forecast equation:} \ \  \hat{y}_{t+h|t} = \ell_t
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Smoothing equation:} \ \ \ell_t = \alpha y_t + (1-\alpha)\ell_{t-1}
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+where `\(\ell_t\)` is the .hi-slate[level] (or the smoothed value) of the series at time *t*.
+
+---
+
+# Simple exponential smoothing
+
+Illustrating the .hi-blue[smoothing equation]:
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Simple exponential smoothing
+
+
+
+```r
+unemp_ets_fit &lt;- unemp_ts |&gt; 
+  model(SES = ETS(unrate ~ error("A") + trend("N") + season("N"))) # "A" = additive; "N" = none.
+
+
+unemp_ets_fit |&gt; 
+  augment()
+```
+
+```
+#&gt; # A tsibble: 136 x 6 [1Q]
+#&gt; # Key:       .model [1]
+#&gt;    .model    date unrate .fitted  .resid  .innov
+#&gt;    &lt;chr&gt;    &lt;qtr&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+#&gt;  1 SES    1990 Q1   5.3     5.32 -0.0239 -0.0239
+#&gt;  2 SES    1990 Q2   5.33    5.30  0.0287  0.0287
+#&gt;  3 SES    1990 Q3   5.7     5.33  0.372   0.372 
+#&gt;  4 SES    1990 Q4   6.13    5.63  0.506   0.506 
+#&gt;  5 SES    1991 Q1   6.6     6.03  0.565   0.565 
+#&gt;  6 SES    1991 Q2   6.83    6.49  0.343   0.343 
+#&gt;  7 SES    1991 Q3   6.87    6.77  0.100   0.100 
+#&gt;  8 SES    1991 Q4   7.1     6.85  0.253   0.253 
+#&gt;  9 SES    1992 Q1   7.37    7.05  0.316   0.316 
+#&gt; 10 SES    1992 Q2   7.6     7.31  0.295   0.295 
+#&gt; # ℹ 126 more rows
+```
+
+
+---
+
+# Simple exponential smoothing
+
+
+
+```r
+unemp_ets_fit &lt;- unemp_ts |&gt; 
+  model(SES = ETS(unrate ~ error("A") + trend("N") + season("N"))) # "A" = additive; "N" = none.
+
+
+unemp_ets_fit |&gt; 
+  augment() 
+```
+
+```
+#&gt; # A tsibble: 136 x 6 [1Q]
+#&gt; # Key:       .model [1]
+#&gt;    .model    date unrate .fitted  .resid  .innov
+#&gt;    &lt;chr&gt;    &lt;qtr&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+*#&gt;  1 SES    1990 Q1   5.3     5.32 -0.0239 -0.0239
+#&gt;  2 SES    1990 Q2   5.33    5.30  0.0287  0.0287
+#&gt;  3 SES    1990 Q3   5.7     5.33  0.372   0.372 
+#&gt;  4 SES    1990 Q4   6.13    5.63  0.506   0.506 
+#&gt;  5 SES    1991 Q1   6.6     6.03  0.565   0.565 
+#&gt;  6 SES    1991 Q2   6.83    6.49  0.343   0.343 
+#&gt;  7 SES    1991 Q3   6.87    6.77  0.100   0.100 
+#&gt;  8 SES    1991 Q4   7.1     6.85  0.253   0.253 
+#&gt;  9 SES    1992 Q1   7.37    7.05  0.316   0.316 
+#&gt; 10 SES    1992 Q2   7.6     7.31  0.295   0.295 
+#&gt; # ℹ 126 more rows
+```
+
+
+
+---
+
+# Simple exponential smoothing
+
+In order to .hi-blue[fit] an exponential smoothing model, we need to define .hi-red[two values]:
+
+  - the smoothing parameter *&amp;alpha;*;
+  
+  - The .hi-slate[initial value] for the level term `\(\ell\)`, `\(\ell_0\)`.
+
+--
+
+While these can be arbitrarily chosen, a better method is to obtain these by .hi-red[minimizing] the Sum of Squared Residuals (SSR):
+
+
+$$
+`\begin{aligned}
+\text{SSR} = \displaystyle\sum_{t=1}^{T}(y_t - \hat{y}_{t|t-1})^2 = \displaystyle\sum_{t=1}^{T}e_t^2
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+Different from a .hi-blue[linear regression] context, this method involves a non-linear optimization, which requires .hi-slate[computational methods] for its solution.
+
+
+
+
+---
+
+# Simple exponential smoothing
+
+.pull-left[
+
+```r
+unemp_ets_fit |&gt; 
+  report()
+```
+
+```
+#&gt; Series: unrate 
+#&gt; Model: ETS(A,N,N) 
+#&gt;   Smoothing parameters:
+#&gt;     alpha = 0.8055464 
+#&gt; 
+#&gt;   Initial states:
+#&gt;      l[0]
+#&gt;  5.323883
+#&gt; 
+#&gt;   sigma^2:  0.8497
+#&gt; 
+#&gt;      AIC     AICc      BIC 
+#&gt; 649.9517 650.1336 658.6897
+```
+]
+--
+
+.pull-right[
+
+```r
+unemp_ets_fit |&gt; 
+  augment() |&gt; 
+  head(7)
+```
+
+```
+#&gt; # A tsibble: 7 x 6 [1Q]
+#&gt; # Key:       .model [1]
+#&gt;   .model    date unrate .fitted  .resid  .innov
+#&gt;   &lt;chr&gt;    &lt;qtr&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+*#&gt; 1 SES    1990 Q1   5.3     5.32 -0.0239 -0.0239
+#&gt; 2 SES    1990 Q2   5.33    5.30  0.0287  0.0287
+#&gt; 3 SES    1990 Q3   5.7     5.33  0.372   0.372 
+#&gt; 4 SES    1990 Q4   6.13    5.63  0.506   0.506 
+#&gt; 5 SES    1991 Q1   6.6     6.03  0.565   0.565 
+#&gt; 6 SES    1991 Q2   6.83    6.49  0.343   0.343 
+#&gt; 7 SES    1991 Q3   6.87    6.77  0.100   0.100
+```
+]
+
+---
+
+# Simple exponential smoothing
+
+After the model has been fit, forecasts can be produced.
+
+--
+
+Simple exponential smoothing delivers .hi-slate[flat] forecasts.
+
+--
+
+In other words, all forecasts take the .hi-red[same value], equal to the last level component.
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+This should *make sense*, since it assumes .hi-blue[no trend] and .hi-blue[no seasonality].
+
+
+---
+
+# Simple exponential smoothing
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, middle
+
+# Exponential smoothing with trend
+
+
+---
+
+# Exponential smoothing with trend
+
+The simple exponential smoothing method is a good .hi-red[starting point] when learning this technique.
+
+--
+
+But usually we deal with series that show a .hi[trend] over time.
+
+--
+
+Thus, we need to further .hi-blue[build up] from this baseline method in order to incorporate other .hi[features] the time series may have.
+
+--
+
+When considering the existence of a .hi[trend], the .hi-slate[component form] of exponential smoothing becomes:
+
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{Forecast equation:} \ \  \hat{y}_{t+h|t} = \ell_t + hb_t
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Level equation:} \ \ \ell_t = \alpha y_t + (1-\alpha)(\ell_{t-1} + b_{t-1})
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Trend equation:} \ \ b_t = \beta^*(\ell_t - \ell_{t-1}) + (1-\beta^*)b_{t-1}
+\end{aligned}`
+$$
+
+---
+
+# Exponential smoothing with trend
+
+$$
+`\begin{aligned}
+\text{Forecast equation:} \ \  \hat{y}_{t+h|t} = \ell_t + hb_t
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Level equation:} \ \ \ell_t = \alpha y_t + (1-\alpha)(\ell_{t-1} + b_{t-1})
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Trend equation:} \ \ b_t = \beta^*(\ell_t - \ell_{t-1}) + (1-\beta^*)b_{t-1}
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+A few new terms:
+
+  - `\(b_t\)` denotes an estimate of the trend (slope) of the series at time *t*;
+  
+  - `\(\beta^*\)` is the smoothing parameter for the trend (just like `\(\alpha\)` is for the level).
+  
+  
+--
+
+Now, forecasts are .hi-red[no longer flat].
+
+--
+
+The *h*-step-ahead forecast is equal to the *last* estimated .hi-blue[level] plus *h* times the *last* estimated .hi-blue[trend] value.
+
+---
+
+# Exponential smoothing with trend
+
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Exponential smoothing with trend
+
+.pull-left[
+
+```r
+cpi_ets_trend_fit &lt;- cpi_ts |&gt; 
+  model(ETS_Trend = ETS(cpi ~ error("A") + 
+                          trend("A") + 
+                          season("N")))
+
+cpi_ets_trend_fit |&gt; 
+  augment() |&gt; 
+  head(5)
+```
+
+```
+#&gt; # A tsibble: 5 x 6 [1M]
+#&gt; # Key:       .model [1]
+#&gt;   .model        date   cpi .fitted   .resid   .innov
+#&gt;   &lt;chr&gt;        &lt;mth&gt; &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1 ETS_Trend 2000 Jan  169.    169.  0.157    0.157  
+#&gt; 2 ETS_Trend 2000 Feb  170     169.  0.651    0.651  
+#&gt; 3 ETS_Trend 2000 Mar  171     170.  0.771    0.771  
+#&gt; 4 ETS_Trend 2000 Apr  171.    171. -0.543   -0.543  
+#&gt; 5 ETS_Trend 2000 May  171.    171.  0.00752  0.00752
+```
+]
+
+.pull-right[
+
+```r
+cpi_ets_trend_fit |&gt; 
+  report()
+```
+
+```
+#&gt; Series: cpi 
+#&gt; Model: ETS(A,A,N) 
+#&gt;   Smoothing parameters:
+#&gt;     alpha = 0.9999 
+#&gt;     beta  = 0.2770026 
+#&gt; 
+#&gt;   Initial states:
+#&gt;      l[0]        b[0]
+#&gt;  169.1376 0.005344676
+#&gt; 
+#&gt;   sigma^2:  0.4628
+#&gt; 
+#&gt;      AIC     AICc      BIC 
+#&gt; 1420.906 1421.118 1439.238
+```
+
+]
+
+
+---
+
+# Exponential smoothing with trend
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+---
+
+# Exponential smoothing with trend
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+class: inverse, middle
+
+# Damped trend methods
+
+
+---
+
+# Damped trend methods
+
+The previous method produces forecasts with a .hi-slate[constant trend] that either increases or decreases .hi-red[indefinitely] into the future.
+
+--
+
+Many times, especially for longer forecast horizons, that may be .hi-slate[too extreme].
+
+--
+
+Thus, there are methods that can "*dampen*" the trend to a flat line over longer forecast horizons.
+
+--
+
+Now our .hi-slate[component form] includes a .hi-red[damping parameter], `\(\phi\)`:
+
+--
+
+$$
+`\begin{aligned}
+\text{Forecast equation:} \ \  \hat{y}_{t+h|t} = \ell_t + (\phi + \phi^2 + \cdot \cdot \cdot + \phi^h)b_t
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Level equation:} \ \ \ell_t = \alpha y_t + (1-\alpha)(\ell_{t-1} + \phi b_{t-1})
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\text{Trend equation:} \ \ b_t = \beta^*(\ell_t - \ell_{t-1}) + (1-\beta^*)\phi b_{t-1}
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+If `\(\phi=1\)`, we are back to the previous trend method.
+
+
+
+
+
+---
+
+# Damped trend methods
+
+
+```r
+cpi_ets_trend_damped_fit &lt;- cpi_ts |&gt; 
+  model(ETS_Trend_Damped = ETS(cpi ~ error("A") + trend("Ad") + season("N")))
+```
+
+--
+
+
+.pull-left[
+
+```r
+cpi_ets_trend_damped_fit |&gt; 
+  augment() |&gt; 
+  head(5)
+```
+
+```
+#&gt; # A tsibble: 5 x 6 [1M]
+#&gt; # Key:       .model [1]
+#&gt;   .model               date   cpi .fitted .resid .innov
+#&gt;   &lt;chr&gt;               &lt;mth&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+#&gt; 1 ETS_Trend_Damped 2000 Jan  169.    169.  0.240  0.240
+#&gt; 2 ETS_Trend_Damped 2000 Feb  170     169.  0.946  0.946
+#&gt; 3 ETS_Trend_Damped 2000 Mar  171     170.  0.646  0.646
+#&gt; 4 ETS_Trend_Damped 2000 Apr  171.    172. -0.760 -0.760
+#&gt; 5 ETS_Trend_Damped 2000 May  171.    171.  0.215  0.215
+```
+]
+
+
+.pull-right[
+
+```r
+cpi_ets_trend_damped_fit |&gt; 
+  report()
+```
+
+```
+#&gt; Series: cpi 
+#&gt; Model: ETS(A,Ad,N) 
+#&gt;   Smoothing parameters:
+#&gt;     alpha = 0.9999 
+#&gt;     beta  = 0.728393 
+#&gt;     phi   = 0.8000002 
+#&gt; 
+#&gt;   Initial states:
+#&gt;      l[0]       b[0]
+#&gt;  169.5424 -0.6028984
+#&gt; 
+#&gt;   sigma^2:  0.4398
+#&gt; 
+#&gt;      AIC     AICc      BIC 
+#&gt; 1407.154 1407.452 1429.153
+```
+
+]
+
+---
+
+# Damped trend methods
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# All together...
+
+
+```r
+cpi_train &lt;- cpi_ts |&gt; 
+  filter_index(. ~ "2021-12-01")
+
+cpi_ets_models &lt;- cpi_train |&gt; 
+  model(SES = ETS(cpi ~ error("A") + trend("N") + season("N")),
+        ETS_trend = ETS(cpi ~ error("A") + trend("A") + season("N")),
+        ETS_Damped_trend = ETS(cpi ~ error("A") + trend("Ad") + season("N")))
+
+cpi_models_fc &lt;- cpi_ets_models |&gt; 
+  forecast(h = 25)
+```
+
+
+---
+
+# All together...
+
+
+
+&lt;img src="008-ets-1_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# All together...
+
+
+
+```r
+cpi_models_fc |&gt; 
+  accuracy(cpi_ts) |&gt; 
+  select(.model, MAE, RMSE, MAPE, MASE)
+```
+
+```
+#&gt; # A tibble: 3 × 5
+#&gt;   .model             MAE  RMSE  MAPE  MASE
+#&gt;   &lt;chr&gt;            &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 ETS_Damped_trend 11.5   13.0  3.80  2.37
+#&gt; 2 ETS_trend         8.33  11.0  2.73  1.71
+#&gt; 3 SES              18.3   19.8  6.06  3.77
+```
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: More exponential smoothing models
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
