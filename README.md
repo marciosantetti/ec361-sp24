@@ -132,6 +132,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
   - [`Part 1`](https://youtu.be/a1U_ltTWHKU)
   - [`Part 2`](https://youtu.be/jXJ8S0WMjrY)
 
+<br>
+
+**004: Exponential smoothing methods**
+
+  - [`Part 1`](https://youtu.be/agEy_EHCKyo)
+  - [`Part 2`](https://youtu.be/AK9QrnKr9Zw)
+
 
 <br>
 
