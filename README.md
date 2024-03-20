@@ -12,6 +12,14 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+## Midterm exam
+
+<br>
+
+  - [`Midterm exam - due 03/29, 12:20 PM`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/midterm-ec361-sp24.pdf)
+
+<br>
+
 ## Lecture notes/slides
 
 <br>
