@@ -89,6 +89,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+**012: Exponential smoothing: Further methods**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-2.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-2.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
@@ -125,6 +131,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3"
 
   - [`Part 1`](https://youtu.be/a1U_ltTWHKU)
   - [`Part 2`](https://youtu.be/jXJ8S0WMjrY)
+
+<br>
+
+**004: Exponential smoothing methods**
+
+  - [`Part 1`](https://youtu.be/agEy_EHCKyo)
+  - [`Part 2`](https://youtu.be/AK9QrnKr9Zw)
 
 
 <br>
