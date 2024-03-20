@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[ARIMA models: Further analysis]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="009-arima-2_files/header-attrs/header-attrs.js"></script>
+    <link href="009-arima-2_files/remark-css/default.css" rel="stylesheet" />
+    <link href="009-arima-2_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="009-arima-2_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[ARIMA models: Further analysis]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 9`](https://otexts.com/fpp3/non-seasonal-arima.html)
+  
+    - sections 9.5&amp;mdash;??.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+
+
+Our last lecture covered .hi-red[three] main concepts:
+
+  1. *Differencing*;
+  
+  2. *Autoregressive* models;
+  
+  3. *Moving average* models.
+  
+--
+
+&lt;br&gt;
+
+If we put these pieces together, we come up with .b[A]uto.b[R]egressive .b[I]ntegrated .b[M]oving .b[A]verage models.
+
+--
+
+  - Also known as **ARIMA** models.
+
+
+
+--
+
+
+
+Therefore, we will now focus on forecast methods for .hi[stationary] (*I*) data, where we can use .hi-red[lagged values] as predictors, be that from the variable .hi-blue[itself] (*AR*), or from .hi-blue[random] (*MA*) components.
+
+---
+class: inverse, middle
+
+# Non-seasonal ARIMA models
+
+
+---
+
+# Non-seasonal ARIMA models
+
+A full .hi-slate[ARIMA(*p,d,q*)] model can be written as
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = c + \phi_1y_{t-1} + \phi_2y_{t-2}  + \cdot \cdot \cdot + \phi_py_{t-p}  + \theta_1\varepsilon_{t-1} + \theta_2\varepsilon_{t-2}  + \cdot \cdot \cdot + \theta_q\varepsilon_{t-q} + \varepsilon_t
+\end{aligned}`
+$$
+
+--
+
+where `\(y_t\)` is a *stationary* time series.
+
+&lt;br&gt;
+
+The ***(p,d,q)*** specification denotes the following:
+
+  - ***p***: order of the **autoregressive** part;
+  
+  - ***d***: degree of **differencing** in order to achieve *stationarity*;
+  
+  - ***q***: order of the **moving average** part.
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;br&gt;
+
+Given the .hi-slate[ARIMA] notation, how do your define the following:
+
+--
+
+&lt;br&gt;
+
+  - A *white noise* process?
+  
+--
+
+  - A *random walk* process?
+  
+--
+
+  - An *AR(2)* model?
+  
+--
+
+  - An *MA(4)* model?
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```r
+unemp_fit &lt;- unemp_ts |&gt; 
+  model(unemp_arima = ARIMA(unrate))
+
+unemp_fit |&gt; 
+  report()
+```
+
+```
+#&gt; Series: unrate 
+#&gt; Model: ARIMA(1,0,0) w/ mean 
+#&gt; 
+#&gt; Coefficients:
+#&gt;          ar1  constant
+#&gt;       0.8545    0.8244
+#&gt; s.e.  0.0435    0.0740
+#&gt; 
+#&gt; sigma^2 estimated as 0.8176:  log likelihood=-178.93
+#&gt; AIC=363.86   AICc=364.04   BIC=372.6
+```
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```r
+unemp_fit |&gt; 
+  augment() |&gt; 
+  features(.innov, ljung_box, lag = 10) # check "dof" argument later.
+```
+
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+
+```r
+gdp_fit &lt;- gdp_ts |&gt; 
+  model(gdp_arima = ARIMA(gdp))
+
+gdp_fit |&gt; 
+  report()
+```
+
+```
+#&gt; Series: gdp 
+#&gt; Model: ARIMA(0,2,2) 
+#&gt; 
+#&gt; Coefficients:
+#&gt;           ma1     ma2
+#&gt;       -1.1359  0.1556
+#&gt; s.e.   0.0589  0.0584
+#&gt; 
+#&gt; sigma^2 estimated as 22105:  log likelihood=-1965.46
+#&gt; AIC=3936.91   AICc=3936.99   BIC=3948.08
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```r
+infrate_ts |&gt; 
+  model(infrate_arima = ARIMA(infrate)) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: infrate 
+#&gt; Model: ARIMA(1,0,2) w/ mean 
+#&gt; 
+#&gt; Coefficients:
+#&gt;          ar1     ma1      ma2  constant
+#&gt;       0.8726  0.0861  -0.5195    0.4627
+#&gt; s.e.  0.0870  0.1321   0.1183    0.1116
+#&gt; 
+#&gt; sigma^2 estimated as 3.472:  log likelihood=-154.27
+#&gt; AIC=318.54   AICc=319.39   BIC=330.26
+```
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: inverse, middle
+
+# Order selection
+
+
+---
+
+# Order selection
+
+
+A .hi[time plot] is not .hi-red[sufficient] to determine the order of an ARIMA model.
+
+--
+
+  - So how to determine the values of *p*, *q*, and *d*?
+
+--
+
+&lt;br&gt;
+
+Since a key feature of ARIMA models concerns modeling the .hi-blue[autocorrelations] in the data, we can appeal to the .hi-slate[autocorrelation function (ACF)] plot we have studied before.
+
+--
+
+&lt;br&gt;
+
+Recall that an ACF plot shows the .hi-slate[autocorrelations] which measure the relationship between *y&lt;sub&gt;t&lt;/sub&gt;* and *y&lt;sub&gt;t-k&lt;/sub&gt;* for different values of *k*.
+
+---
+
+# Order selection
+
+&lt;br&gt;
+
+But *think about the following*:
+
+&lt;br&gt;
+
+--
+
+  - If *y&lt;sub&gt;t&lt;/sub&gt;* and *y&lt;sub&gt;t-1&lt;/sub&gt;* are .hi-red[correlated], then *y&lt;sub&gt;t-1&lt;/sub&gt;* and *y&lt;sub&gt;t-2&lt;/sub&gt;* must also be correlated.
+  
+--
+
+  - This implies that *y&lt;sub&gt;t&lt;/sub&gt;* and *y&lt;sub&gt;t-2&lt;/sub&gt;* might .hi[also] be correlated.
+  
+--
+
+  - But is this latter correlation due to their .hi-slate[connection] to *y&lt;sub&gt;t-1&lt;/sub&gt;* or because of any .hi-red[new information] contained in *y&lt;sub&gt;t-2&lt;/sub&gt;* that could be used in forecasting *y&lt;sub&gt;t&lt;/sub&gt;*?
+
+---
+
+# Order selection
+
+With these issues in mind, we can also use the .hi-slate[Partial Autocorrelation Coefficient Function (PACF)].
+
+--
+
+&gt; The .hi-slate[partial autocorrelation] at lag *k* is the correlation that results after .hi-red[removing the effect] of *any* correlations due to the terms at shorter lags.
+
+--
+
+&lt;br&gt;
+
+In other words, the partial autocorrelation coefficient measures the relationship between *y&lt;sub&gt;t&lt;/sub&gt;* and *y&lt;sub&gt;t-k&lt;/sub&gt;* .hi-slate[after removing] the effects of lags 1, 2, 3,..., *k-1*.
+
+--
+
+  - This way, the *first* partial autocorrelation is always .hi-blue[equal] to the *first* autocorrelation coefficient, since there is no observation in between to be removed.
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+
+```r
+unemp_ts |&gt; 
+  ACF(unrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-14-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+unemp_ts |&gt; 
+  PACF(unrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+# Order selection
+
+.pull-left[
+
+```r
+gdp_ts |&gt; 
+  ACF(gdp) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+gdp_ts |&gt; 
+  PACF(gdp) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+
+```r
+infrate_ts |&gt; 
+  ACF(infrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+infrate_ts |&gt; 
+  PACF(infrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+
+---
+
+# Order selection
+
+In the cases of .hi-blue[ARIMA(*0, d, q*)] or .hi-red[ARIMA(*p, d, 0*)] models, then ACF and PACF plots can be very helpful to determine the ordering of the ARIMA model.
+
+--
+
+- If *p* and *q* are positive, then these plots are not that helpful.
+
+--
+
+&lt;br&gt;
+
+In case of an .b[ARIMA(*p, d, 0*)] model:
+
+  - the ACF is exponentially decaying or sinusoidal;
+  - there is a significant spike at lag *p* in the PACF, but none beyond lag *p*.
+  
+--
+
+In case of an .b[ARIMA(*0, d, q*)] model:
+
+  - the PACF is exponentially decaying or sinusoidal;
+  - there is a significant spike at lag *q* in the ACF, but none beyond lag *q*.
+  
+  
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: ARIMA modeling and forecasting
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

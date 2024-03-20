@@ -1,0 +1,592 @@
+---
+title: ".b[ARIMA models: Further analysis]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3, MetBrewer)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 8,
+  fig.width = 12.5,
+  warning = F,
+  dev = "svg",
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br><br>
+
+.b[Required readings]:
+
+<br>
+
+
+  - [`Hyndman & Athanasopoulos, ch. 9`](https://otexts.com/fpp3/non-seasonal-arima.html)
+  
+    - sections 9.5&mdash;??.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+
+
+Our last lecture covered .hi-red[three] main concepts:
+
+  1. *Differencing*;
+  
+  2. *Autoregressive* models;
+  
+  3. *Moving average* models.
+  
+--
+
+<br>
+
+If we put these pieces together, we come up with .b[A]uto.b[R]egressive .b[I]ntegrated .b[M]oving .b[A]verage models.
+
+--
+
+  - Also known as **ARIMA** models.
+
+
+
+--
+
+
+
+Therefore, we will now focus on forecast methods for .hi[stationary] (*I*) data, where we can use .hi-red[lagged values] as predictors, be that from the variable .hi-blue[itself] (*AR*), or from .hi-blue[random] (*MA*) components.
+
+---
+class: inverse, middle
+
+# Non-seasonal ARIMA models
+
+
+---
+
+# Non-seasonal ARIMA models
+
+A full .hi-slate[ARIMA(*p,d,q*)] model can be written as
+
+<br>
+
+$$
+\begin{aligned}
+y_t = c + \phi_1y_{t-1} + \phi_2y_{t-2}  + \cdot \cdot \cdot + \phi_py_{t-p}  + \theta_1\varepsilon_{t-1} + \theta_2\varepsilon_{t-2}  + \cdot \cdot \cdot + \theta_q\varepsilon_{t-q} + \varepsilon_t
+\end{aligned}
+$$
+
+--
+
+where $y_t$ is a *stationary* time series.
+
+<br>
+
+The ***(p,d,q)*** specification denotes the following:
+
+  - ***p***: order of the **autoregressive** part;
+  
+  - ***d***: degree of **differencing** in order to achieve *stationarity*;
+  
+  - ***q***: order of the **moving average** part.
+
+---
+
+# Non-seasonal ARIMA models
+
+<br>
+
+Given the .hi-slate[ARIMA] notation, how do your define the following:
+
+--
+
+<br>
+
+  - A *white noise* process?
+  
+--
+
+  - A *random walk* process?
+  
+--
+
+  - An *AR(2)* model?
+  
+--
+
+  - An *MA(4)* model?
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```{r, echo=F}
+unemp <- read_csv("UNRATE.csv") |> 
+  clean_names()
+
+unemp_ts <- unemp |> 
+  mutate(date = yearquarter(date)) |> 
+  as_tsibble(index = date)
+
+unemp_ts |> 
+  autoplot(unrate) +
+  labs(title = "U.S. unemployment rate",
+       subtitle = "1990Q1—2023Q4",
+       caption = "Source: U.S. Bureau of Labor Statistics.",
+       y = "Percent") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13)
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r}
+unemp_fit <- unemp_ts |> 
+  model(unemp_arima = ARIMA(unrate))
+
+unemp_fit |> 
+  report()
+```
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+
+unemp_fit |> 
+  augment() |> 
+  ggplot(aes(x = date, y = unrate)) +
+  geom_line(aes(color = "Original series")) +
+  geom_line(aes(y = .fitted, color = "Fitted values"), linewidth = 0.8) +
+  scale_color_manual(values = c( "#f23869", "#133337")) +
+  labs(title = "U.S. unemployment rate",
+       y = "Percent",
+       color = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13) +
+  easy_plot_legend_size(13) +
+  easy_legend_at("top")
+
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+
+unemp_fit |> 
+  gg_tsresiduals()
+
+```
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, eval = F}
+
+unemp_fit |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 10) # check "dof" argument later.
+
+```
+
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```{r, echo=F}
+gdp <- read_csv("GDPC1.csv") |> 
+  clean_names() |> 
+  rename(gdp = gdpc1)
+
+gdp_ts <- gdp |> 
+  mutate(date = yearquarter(date)) |> 
+  as_tsibble(index = date)
+
+gdp_ts |> 
+  autoplot() +
+  labs(title = "U.S. Real Gross Domestic Product",
+                  subtitle = "1947Q1—2023Q4",
+                  caption = "Source: U.S. Bureau of Economic Analysis.",
+                  y = "Billions of chained 2017 dollars") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13)
+
+```
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```{r}
+gdp_fit <- gdp_ts |> 
+  model(gdp_arima = ARIMA(gdp))
+
+gdp_fit |> 
+  report()
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+gdp_fit |> 
+  augment() |> 
+  ggplot(aes(x = date, y = gdp)) +
+  geom_line(aes(color = "Original series")) +
+  geom_line(aes(y = .fitted, color = "Fitted values"), linewidth = 0.8) +
+  scale_color_manual(values = c( "#f23869", "#133337")) +
+  labs(title = "U.S. Real Gross Domestic Product",
+       y = "Billions of chained 2017 dollars",
+       color = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13) +
+  easy_plot_legend_size(13) +
+  easy_legend_at("top")
+```
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+gdp_fit |> 
+  gg_tsresiduals()
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+infrate <- read_csv("CPIAUCSL3.csv") |> 
+  clean_names() |> 
+  rename(infrate = cpiaucsl_pc1)
+
+infrate_ts <- infrate |> 
+  mutate(date = year(date),
+         infrate = as.double(infrate)) |> 
+  as_tsibble(index = date)
+
+infrate_ts |> 
+  autoplot() +
+  labs(title = "U.S. annual inflation rate",
+       subtitle = "1948—2023",
+       caption = "Source: U.S. Bureau of Labor Statistics.",
+       y = "% change from a year ago") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13)
+```
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r}
+infrate_ts |> 
+  model(infrate_arima = ARIMA(infrate)) |> 
+  report()
+```
+
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+
+infrate_fit |> 
+  augment() |> 
+  ggplot(aes(x = date, y = infrate)) +
+  geom_line(aes(color = "Original series")) +
+  geom_line(aes(y = .fitted, color = "Fitted values"), linewidth = 0.8) +
+  scale_color_manual(values = c( "#f23869", "#133337")) +
+  labs(title = "U.S. annual inflation rate",
+       y = "% change from a year ago",
+       color = "") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(13) +
+  easy_plot_legend_size(13) +
+  easy_legend_at("top")
+
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r, echo=F}
+
+infrate_fit |> 
+  gg_tsresiduals()
+
+```
+
+
+---
+class: inverse, middle
+
+# Order selection
+
+
+---
+
+# Order selection
+
+
+A .hi[time plot] is not .hi-red[sufficient] to determine the order of an ARIMA model.
+
+--
+
+  - So how to determine the values of *p*, *q*, and *d*?
+
+--
+
+<br>
+
+Since a key feature of ARIMA models concerns modeling the .hi-blue[autocorrelations] in the data, we can appeal to the .hi-slate[autocorrelation function (ACF)] plot we have studied before.
+
+--
+
+<br>
+
+Recall that an ACF plot shows the .hi-slate[autocorrelations] which measure the relationship between *y<sub>t</sub>* and *y<sub>t-k</sub>* for different values of *k*.
+
+---
+
+# Order selection
+
+<br>
+
+But *think about the following*:
+
+<br>
+
+--
+
+  - If *y<sub>t</sub>* and *y<sub>t-1</sub>* are .hi-red[correlated], then *y<sub>t-1</sub>* and *y<sub>t-2</sub>* must also be correlated.
+  
+--
+
+  - This implies that *y<sub>t</sub>* and *y<sub>t-2</sub>* might .hi[also] be correlated.
+  
+--
+
+  - But is this latter correlation due to their .hi-slate[connection] to *y<sub>t-1</sub>* or because of any .hi-red[new information] contained in *y<sub>t-2</sub>* that could be used in forecasting *y<sub>t</sub>*?
+
+---
+
+# Order selection
+
+With these issues in mind, we can also use the .hi-slate[Partial Autocorrelation Coefficient Function (PACF)].
+
+--
+
+> The .hi-slate[partial autocorrelation] at lag *k* is the correlation that results after .hi-red[removing the effect] of *any* correlations due to the terms at shorter lags.
+
+--
+
+<br>
+
+In other words, the partial autocorrelation coefficient measures the relationship between *y<sub>t</sub>* and *y<sub>t-k</sub>* .hi-slate[after removing] the effects of lags 1, 2, 3,..., *k-1*.
+
+--
+
+  - This way, the *first* partial autocorrelation is always .hi-blue[equal] to the *first* autocorrelation coefficient, since there is no observation in between to be removed.
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+unemp_ts |> 
+  ACF(unrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+unemp_ts |> 
+  PACF(unrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+---
+
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+gdp_ts |> 
+  ACF(gdp) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+gdp_ts |> 
+  PACF(gdp) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+infrate_ts |> 
+  ACF(infrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+infrate_ts |> 
+  PACF(infrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+
+---
+
+# Order selection
+
+In the cases of .hi-blue[ARIMA(*0, d, q*)] or .hi-red[ARIMA(*p, d, 0*)] models, then ACF and PACF plots can be very helpful to determine the ordering of the ARIMA model.
+
+--
+
+- If *p* and *q* are positive, then these plots are not that helpful.
+
+--
+
+<br>
+
+In case of an .b[ARIMA(*p, d, 0*)] model:
+
+  - the ACF is exponentially decaying or sinusoidal;
+  - there is a significant spike at lag *p* in the PACF, but none beyond lag *p*.
+  
+--
+
+In case of an .b[ARIMA(*0, d, q*)] model:
+
+  - the PACF is exponentially decaying or sinusoidal;
+  - there is a significant spike at lag *q* in the ACF, but none beyond lag *q*.
+  
+  
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: ARIMA modeling and forecasting
+
+---
+exclude: true
+
+
+
+
+

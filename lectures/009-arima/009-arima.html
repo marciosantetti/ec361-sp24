@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[ARIMA models: Introduction]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="009-arima_files/header-attrs/header-attrs.js"></script>
+    <link href="009-arima_files/remark-css/default.css" rel="stylesheet" />
+    <link href="009-arima_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="009-arima_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[ARIMA models: Introduction]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 9`](https://otexts.com/fpp3/arima.html)
+  
+    - sections 9.1&amp;mdash;9.4.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+
+Along with *exponential smoothing*, .hi-red[ARIMA models] are the most .hi[widely used] approach for time series forecasting.
+
+--
+
+&lt;br&gt;
+
+That said, these two techniques should not be seen as .hi-red[competing], but as .hi-blue[complementary] to each other.
+
+--
+
+&lt;br&gt;
+
+One .hi-slate[key distinction] between these two approaches is that, while exponential smoothing focuses on time series .hi[features] (*error*, *trend*, and *seasonality*), ARIMA models focus on the presence of .hi-red[autocorrelation] in the data.
+
+--
+
+
+We will start studying ARIMA models by looking at time series .hi-blue[stationarity].
+
+
+---
+class: inverse, middle
+
+# Stationarity
+
+
+---
+
+# Stationarity
+
+In short:
+
+&gt; *A .hi-red[stationary] time series is one whose statistical properties .hi-blue[do not] depend on the time at which the series is observed.*
+
+--
+
+&lt;br&gt;
+
+In other words, a time series that contains relevant features&amp;mdash;such as *trend* and *seasonality*&amp;mdash;will not be .hi-red[stationary], since its behavior changes over time.
+
+--
+
+On the other hand, a time series following a .hi-slate[white noise] process is stationary.
+
+  - Whenever you observe the series, it will look pretty much the same.
+  
+--
+
+
+
+In .hi[visual] terms, the *time plot* of a stationary time series will be roughly .hi-red[horizontal] (which can include *cyclic* behavior) and with a *constant variance*.
+
+---
+
+# Stationarity
+
+.center[
+&lt;img src="plots.png", width = "70%"&gt;
+]
+
+
+
+---
+
+# Stationarity
+
+Recall that one .hi-slate[key] characteristic of a stationary time series is .hi-red[constant variance].
+
+--
+
+A few weeks ago, we learned that .hi-orange[log-transformations] help to stabilize a series' variance over time.
+
+--
+
+But in order for a time series to be stationary, its .hi-blue[mean] should also be stable over time (i.e., with no trend).
+
+--
+
+A technique that helps to stabilize the .hi-blue[mean] of a time series is known as .hi-slate[differencing].
+
+--
+
+&lt;br&gt;
+
+A .hi-red[differenced series] is the *change between consecutive observations* in the original series, and can be written as 
+
+
+$$
+`\begin{aligned}
+y_t' = y_t - y_{t-1}
+\end{aligned}`
+$$
+
+---
+
+# Stationarity
+
+When the differenced series is .hi-slate[white noise], the model for the original series can be written as:
+
+$$
+`\begin{aligned}
+y_t - y_{t-1} = \varepsilon_t
+\end{aligned}`
+$$
+
+where `\(\varepsilon_t\)` denotes a white noise process (i.e., with no autocorrelation).
+
+--
+
+&lt;br&gt;
+
+*Rearranging* the above equation, we end up with
+
+$$
+`\begin{aligned}
+y_t = y_{t-1} + \varepsilon_t
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+which, unsurprisingly, is a .hi-red[random walk process].
+
+
+---
+
+# Stationarity
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = y_{t-1} + \varepsilon_t
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+*Random walk* models are widely used for .hi[non-stationary] data, as they typically show:
+
+  - long periods of apparent *trends* up or down;
+  - *sudden* and *unpredictable* changes in direction.
+
+--
+
+As future movements in a random walk process are .hi-red[unpredictable], forecasts from these processes are usually equal to the .hi-slate[last observation].
+
+  - This fact generates the .hi-blue[naïve forecast method].
+
+
+
+---
+
+# Stationarity
+
+Whenever the .hi-blue[differences] between `\(y_t\)` and `\(y_{t-1}\)` are, on average, different from zero, one can account for this in the following way:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t - y_{t-1} = c + \varepsilon_t
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+where `\(c\)` accounts for the possibility of `\(y_t\)` .hi-slate[drifting] *upwards* or *downwards.*
+
+--
+
+&lt;br&gt;
+
+This model is behind the .hi-red[drift forecast method].
+
+
+---
+
+# Stationarity
+
+When a time series shows .hi-blue[seasonality], one option is to work with .hi-red[seasonal differencing].
+
+--
+
+What this implies is that we can take the difference between an observation `\(y_t\)` and the *previous* observation from the .hi[same season]:
+
+$$
+`\begin{aligned}
+y_t' = y_t - y_{t-m} 
+\end{aligned}`
+$$
+
+where `\(m\)` denotes the number of seasonal periods.
+
+--
+
+&lt;br&gt;
+
+In case the differenced data from seasonal differencing is .hi-blue[white noise], then one can write:
+
+$$
+`\begin{aligned}
+y_t = y_{t-m} + \varepsilon_t
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+And this model gives origin to the .hi-red[seasonal naïve forecast method]. 
+
+
+---
+
+# Stationarity
+
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Stationarity
+
+
+
+
+```r
+air_ts |&gt; 
+  mutate(diff_passengers = difference(passengers, lag = 1),
+         seas_diff_passengers = difference(passengers, lag = 12),
+         diff_log_passengers = difference(log(passengers), lag = 1),
+         seas_diff_log_passengers = difference(log(passengers), lag = 12))
+```
+
+```
+#&gt; # A tsibble: 144 x 6 [1M]
+#&gt;        date passengers diff_passengers seas_diff_passengers diff_log_passengers seas_diff_log_passengers
+#&gt;       &lt;mth&gt;      &lt;dbl&gt;           &lt;dbl&gt;                &lt;dbl&gt;               &lt;dbl&gt;                    &lt;dbl&gt;
+#&gt;  1 1949 Jan        112              NA                   NA             NA                            NA
+#&gt;  2 1949 Feb        118               6                   NA              0.0522                       NA
+#&gt;  3 1949 Mar        132              14                   NA              0.112                        NA
+#&gt;  4 1949 Apr        129              -3                   NA             -0.0230                       NA
+#&gt;  5 1949 May        121              -8                   NA             -0.0640                       NA
+#&gt;  6 1949 Jun        135              14                   NA              0.109                        NA
+#&gt;  7 1949 Jul        148              13                   NA              0.0919                       NA
+#&gt;  8 1949 Aug        148               0                   NA              0                            NA
+#&gt;  9 1949 Sep        136             -12                   NA             -0.0846                       NA
+#&gt; 10 1949 Oct        119             -17                   NA             -0.134                        NA
+#&gt; # ℹ 134 more rows
+```
+
+
+
+---
+
+# Stationarity
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Stationarity
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Stationarity
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Stationarity
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Stationarity
+
+When applying .hi-slate[differencing] techniques to our data, there is .hi-red[no definitive approach].
+
+--
+
+There is always a .hi-blue[degree of subjectivity] when choosing the best way of dealing with the data we have at hand.
+
+&lt;br&gt;
+
+--
+
+What has to be kept in mind, though, is .hi-slate[interpretability].
+
+&lt;br&gt;
+
+--
+
+  - *First differences* are the change between one observation and the next;
+  
+  - *Seasonal differences* are the change between one year to the next;
+  
+  - Other lags are unlikely to make much *interpretable* sense and should be avoided.
+
+---
+class: inverse, middle
+
+# Unit root tests
+
+---
+
+# Unit root tests
+
+Don't ever *undermine* your .hi-blue[subjectivity]/.hi-blue[gut feeling] when it comes to analyzing time series!
+
+--
+
+That said, a way to be more objective when it comes to determining whether a time series is stationary or not is by using .hi-slate[unit root testing].
+
+--
+
+Unit root tests are statistical .hi-red[hypothesis tests] of stationarity that are designed for determining *whether differencing is required*.
+
+--
+
+&lt;br&gt;
+
+One of these tests is the .hi-blue[Kwiatkowski-Phillips-Schmidt-Shin (KPSS)] test.
+
+--
+
+Its .hi-slate[null hypothesis] states that the data are *stationary*, and in case the latter is rejected, we have evidence in favor of .hi-red[differencing] our data.
+
+---
+
+# Unit root tests
+
+
+
+```r
+air_ts |&gt; 
+  features(passengers, unitroot_kpss)
+```
+
+```
+#&gt; # A tibble: 1 × 2
+#&gt;   kpss_stat kpss_pvalue
+#&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#&gt; 1      2.74        0.01
+```
+
+
+--
+
+&lt;br&gt;
+
+
+```r
+air_ts |&gt; 
+  features(difference(passengers, lag = 1), unitroot_kpss)
+```
+
+```
+#&gt; # A tibble: 1 × 2
+#&gt;   kpss_stat kpss_pvalue
+#&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#&gt; 1    0.0146         0.1
+```
+
+---
+class: inverse, middle
+
+# Backshift notation
+
+---
+
+# Backshift notation
+
+As we will progressively explore autocorrelations in our time series, working with .hi-slate[lagged values] will become more necessary.
+
+--
+
+To make this easier in terms of .hi-red[notation], we can introduce the .hi-slate[backshift operator], *B*:
+
+
+$$
+`\begin{aligned}
+By_t = y_{t-1} 
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+In words, *B* .hi-red[shifts back] the data one period in time.
+
+--
+
+&lt;br&gt;
+
+In case we want to shift back the series two periods, we may write:
+
+$$
+`\begin{aligned}
+B^2y_t = y_{t-2} 
+\end{aligned}`
+$$
+
+---
+
+# Backshift notation
+
+For .hi-blue[differencing] purposes, the backward shift operator can be used as follows:
+
+
+$$
+`\begin{aligned}
+y_t' = y_t - y_{t-1} =  y_t - By_{t} = (1-B)y_t
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+In case we use .hi-blue[second differencing], we can write:
+
+$$
+`\begin{aligned}
+y_t'' = (1-B)^2y_t
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+In general, a .hi-slate[*d*th-order difference] can be written as
+
+
+$$
+`\begin{aligned}
+y_t' = (1-B)^dy_t
+\end{aligned}`
+$$
+
+---
+class: inverse, middle
+
+# Autoregressive models
+
+
+---
+
+# Autoregressive models
+
+When we estimate a .hi-slate[regression model], our aim is to explain the behavior of a *dependent* variable in terms of a .hi[linear combination] of *independent* (*predictor*) variables.
+
+--
+
+When these predictor variables are .hi-red[past values] of the variable of interest, we have the following:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = c + \phi_1y_{t-1} + \phi_2y_{t-2} + \phi_3y_{t-3} + \cdot \cdot \cdot + \phi_py_{t-p} + \varepsilon_t
+\end{aligned}`
+$$
+
+where `\(\varepsilon_t\)` is white noise.
+
+--
+
+&lt;br&gt;
+
+The above model is known as an .hi-slate[autoregressive model] of order *p*.
+
+--
+
+  - In short, we may write this as an .hi-red[AR(*p*)] model.
+
+
+---
+class: clear
+
+
+`\(y_t = 18 -0.8y_{t-1} + \varepsilon_t\)`
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+class: clear
+
+
+`\(y_t = 100 + 0.25y_{t-1} + \varepsilon_t\)`
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: clear
+
+
+`\(y_t = 8 +1.3y_{t-1} -0.7y_{t-2}+ \varepsilon_t\)`
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Autoregressive models
+
+&lt;br&gt;
+
+A few .hi-slate[remarks]:
+
+&lt;br&gt;
+
+- For an .b[AR(1)] model: `\(y_t = c + \phi_1y_{t-1} + \epsilon_t\)`:
+
+  - If `\(\phi_1 = 0\)` and `\(c = 0\)`, `\(y_t\)` is *white noise*;
+  
+  - If `\(\phi_1 = 1\)`, `\(y_t\)` follows a *random walk* process;
+  
+  - If `\(\phi_1 = 1\)` and `\(c \neq 0\)`, `\(y_t\)` is follows a *random walk with drift*.
+
+---
+class: inverse, middle
+
+# Moving average models
+
+---
+
+# Moving average models
+
+A .hi-slate[Moving Average (MA) process] of order *q* can be expressed as follows:
+
+--
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = c + \varepsilon_t + \theta_1\varepsilon_{t-1} + \theta_2\varepsilon_{t-2} + \theta_3\varepsilon_{t-3} + \cdot \cdot \cdot + \theta_q\varepsilon_{t-q} 
+\end{aligned}`
+$$
+
+where `\(\varepsilon_t\)` is white noise.
+
+--
+
+&lt;br&gt;
+
+In words, a moving average model uses a linear combination of .hi-red[past forecast errors] to explain the current behavior of a time series `\(y_t\)`.
+
+---
+class: clear
+
+`\(y_t = 20 + \varepsilon_t + 0.8\varepsilon_{t-1}\)`
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+class: clear
+
+`\(y_t = \varepsilon_t - \varepsilon_{t-1} + 0.8\varepsilon_{t-2}\)`
+
+&lt;img src="009-arima_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: More on ARIMA models
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
