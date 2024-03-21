@@ -69,7 +69,7 @@ purple <- "#6A5ACD"
 
   - [`Hyndman & Athanasopoulos, ch. 9`](https://otexts.com/fpp3/non-seasonal-arima.html)
   
-    - sections 9.5&mdash;??.
+    - sections 9.5&mdash;9.6.
     
 
 
@@ -246,15 +246,23 @@ unemp_fit |>
 
 # Non-seasonal ARIMA models
 
-```{r, eval = F}
+The .hi-blue[Portmanteau tests] are still valid for ARIMA model residuals:
+
+```{r}
 
 unemp_fit |> 
   augment() |> 
-  features(.innov, ljung_box, lag = 10) # check "dof" argument later.
+  features(.innov, ljung_box, lag = 10, dof = 1)
 
 ```
 
+--
 
+<br>
+
+A more .hi-slate[precise] estimation of Portmanteau tests for ARIMA models can be obtained by including .hi-red[degrees-of-freedom]:
+
+  - given by *p + q*.
 
 
 ---
@@ -332,6 +340,19 @@ gdp_fit |>
 
 # Non-seasonal ARIMA models
 
+```{r}
+
+gdp_fit |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 10, dof = 2)
+
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
 ```{r, echo=F}
 infrate <- read_csv("CPIAUCSL3.csv") |> 
   clean_names() |> 
@@ -397,6 +418,18 @@ infrate_fit |>
 
 infrate_fit |> 
   gg_tsresiduals()
+
+```
+
+---
+
+# Non-seasonal ARIMA models
+
+```{r}
+
+infrate_fit |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 10, dof = 3)
 
 ```
 
@@ -574,7 +607,166 @@ In case of an .b[ARIMA(*0, d, q*)] model:
   
   
 
+---
 
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+gdp_ts |> 
+  ACF(gdp) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+gdp_ts |> 
+  PACF(gdp) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+---
+
+# Order selection
+
+
+```{r}
+gdp_ts |> 
+  model(arima110 = ARIMA(gdp ~ pdq(1, 1, 0)), # ARIMA(1, 1, 0)
+        arima211 = ARIMA(gdp ~ pdq(2, 1, 1)), # ARIMA(2, 1, 1)
+        arima_auto = ARIMA(gdp)) # letting the fable package choose.
+
+
+```
+
+
+---
+
+# Order selection
+
+```{r}
+gdp_ts |> 
+  model(arima110 = ARIMA(gdp ~ pdq(1, 1, 0)),
+        arima211 = ARIMA(gdp ~ pdq(2, 1, 1)),
+        arima_auto = ARIMA(gdp)) |> 
+  glance() |> 
+  arrange(AICc) |> 
+  select(.model, AIC, AICc) # Two selection criteria.
+```
+
+
+<br>
+
+
+The `{fable}` package estimates ARIMA models using .hi-slate[Maximum Likelihood (ML)] estimation, and its .hi-red[automatic] choice is for the model that .hi-red[minimizes] the corrected *Akaike Information Criterion* (*AICc*).
+
+
+---
+
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+infrate_ts |> 
+  ACF(infrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+infrate_ts |> 
+  PACF(infrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+---
+
+# Order selection
+
+```{r}
+infrate_ts |> 
+  model(arima500 = ARIMA(infrate ~ pdq(5, 0, 0)),
+        arima301 = ARIMA(infrate ~ pdq(3, 0, 1)),
+        arima_auto = ARIMA(infrate))
+```
+
+
+
+---
+
+# Order selection
+
+```{r}
+infrate_ts |> 
+  model(arima500 = ARIMA(infrate ~ pdq(5, 0, 0)),
+        arima301 = ARIMA(infrate ~ pdq(3, 0, 1)),
+        arima_auto = ARIMA(infrate)) |> 
+  glance() |> 
+  arrange(AICc) |> 
+  select(.model, AIC, AICc)
+```
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+```{r, fig.width = 8, fig.height = 6}
+unemp_ts |> 
+  ACF(unrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+]
+
+.pull-right[
+```{r, fig.width = 8, fig.height = 6}
+unemp_ts |> 
+  PACF(unrate) |> 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+]
+
+---
+
+# Order selection
+
+```{r}
+unemp_ts |> 
+  model(arima100 = ARIMA(unrate ~ pdq(1, 0, 0)),
+        arima101 = ARIMA(unrate ~ pdq(1, 0, 1)),
+        arima_auto = ARIMA(unrate))
+
+```
+
+
+---
+
+# Order selection
+
+```{r}
+unemp_ts |> 
+  model(arima100 = ARIMA(unrate ~ pdq(1, 0, 0)),
+        arima101 = ARIMA(unrate ~ pdq(1, 0, 1)),
+        arima_auto = ARIMA(unrate)) |> 
+  glance() |> 
+  arrange(AICc) |> 
+  select(.model, AIC, AICc)
+```
 
 
 ---

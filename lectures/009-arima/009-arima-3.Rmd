@@ -85,6 +85,22 @@ class: inverse, middle
 
 <br>
 
+Last time, we have joined the *AR*, *I*, and *MA* portions of .hi-slate[ARIMA] models.
+
+--
+
+When deciding on the .hi-red[order] of our ARIMA models, a great starting point is to look at the *autocorrelation coefficient function* (.hi-blue[ACF]) and *partial autocorrelation function* (.hi-blue[PACF]) plots.
+
+--
+
+<br>
+
+However, these can only do so much when deciding on which model to choose and perform our forecasts.
+
+--
+
+Therefore, we must move on to more .hi-slate[robust] procedures.
+
 
 ---
 class: inverse, middle
@@ -95,6 +111,64 @@ class: inverse, middle
 ---
 
 # ARIMA at work
+
+The `{fable}` R package handles ARIMA estimation following the .hi-slate[Hyndman-Khandakar algorithm]:
+
+--
+
+.center[
+<img src="alg.png", width = "60%">
+]
+
+
+---
+
+# ARIMA at work
+
+The .hi-red[stepwise] procedure:
+
+.center[
+<img src="a1.png", width = "40%">
+]
+
+
+---
+
+# ARIMA at work
+
+The .hi-red[stepwise] procedure:
+
+.center[
+<img src="a2.png", width = "40%">
+]
+
+---
+
+# ARIMA at work
+
+The .hi-red[stepwise] procedure:
+
+.center[
+<img src="a3.png", width = "40%">
+]
+
+
+---
+class: clear
+
+
+
+.center[
+<img src="flow.png", width = "45%">
+]
+
+---
+class: inverse, middle
+
+# An example
+
+
+
 
 
 ---
@@ -111,7 +185,7 @@ class: inverse, middle
 layout: false
 class: inverse, middle
 
-# Next time: ??
+# Next time: Seasonal ARIMA models
 
 ---
 exclude: true

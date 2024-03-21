@@ -51,7 +51,7 @@ class: center, middle, inverse, title-slide
 
   - [`Hyndman &amp; Athanasopoulos, ch. 9`](https://otexts.com/fpp3/non-seasonal-arima.html)
   
-    - sections 9.5&amp;mdash;??.
+    - sections 9.5&amp;mdash;9.6.
     
 
 
@@ -205,14 +205,29 @@ unemp_fit |&gt;
 
 # Non-seasonal ARIMA models
 
+The .hi-blue[Portmanteau tests] are still valid for ARIMA model residuals:
+
 
 ```r
 unemp_fit |&gt; 
   augment() |&gt; 
-  features(.innov, ljung_box, lag = 10) # check "dof" argument later.
+  features(.innov, ljung_box, lag = 10, dof = 1)
 ```
 
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model      lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;         &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 unemp_arima    2.73     0.974
+```
 
+--
+
+&lt;br&gt;
+
+A more .hi-slate[precise] estimation of Portmanteau tests for ARIMA models can be obtained by including .hi-red[degrees-of-freedom]:
+
+  - given by *p + q*.
 
 
 ---
@@ -269,7 +284,26 @@ gdp_fit |&gt;
 
 # Non-seasonal ARIMA models
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+```r
+gdp_fit |&gt; 
+  augment() |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 2)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model    lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;       &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 gdp_arima    5.13     0.744
+```
+
+
+---
+
+# Non-seasonal ARIMA models
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -303,14 +337,32 @@ infrate_ts |&gt;
 
 # Non-seasonal ARIMA models
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 ---
 
 # Non-seasonal ARIMA models
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-14-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Non-seasonal ARIMA models
+
+
+```r
+infrate_fit |&gt; 
+  augment() |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 3)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model        lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 infrate_arima    4.42     0.730
+```
 
 
 ---
@@ -399,7 +451,7 @@ unemp_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-14-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
 ]
 
 .pull-right[
@@ -411,7 +463,7 @@ unemp_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -428,7 +480,7 @@ gdp_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
 ]
 
 .pull-right[
@@ -440,7 +492,7 @@ gdp_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -459,7 +511,7 @@ infrate_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-20-1.svg" style="display: block; margin: auto;" /&gt;
 ]
 
 .pull-right[
@@ -471,7 +523,7 @@ infrate_ts |&gt;
   easy_y_axis_title_size(18)
 ```
 
-&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-21-1.svg" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -504,7 +556,235 @@ In case of an .b[ARIMA(*0, d, q*)] model:
   
   
 
+---
 
+# Order selection
+
+.pull-left[
+
+```r
+gdp_ts |&gt; 
+  ACF(gdp) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-22-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+gdp_ts |&gt; 
+  PACF(gdp) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-23-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+# Order selection
+
+
+
+```r
+gdp_ts |&gt; 
+  model(arima110 = ARIMA(gdp ~ pdq(1, 1, 0)), # ARIMA(1, 1, 0)
+        arima211 = ARIMA(gdp ~ pdq(2, 1, 1)), # ARIMA(2, 1, 1)
+        arima_auto = ARIMA(gdp)) # letting the fable package choose.
+```
+
+```
+#&gt; # A mable: 1 x 3
+#&gt;                  arima110                arima211     arima_auto
+#&gt;                   &lt;model&gt;                 &lt;model&gt;        &lt;model&gt;
+#&gt; 1 &lt;ARIMA(1,1,0) w/ drift&gt; &lt;ARIMA(2,1,1) w/ drift&gt; &lt;ARIMA(0,2,2)&gt;
+```
+
+
+---
+
+# Order selection
+
+
+```r
+gdp_ts |&gt; 
+  model(arima110 = ARIMA(gdp ~ pdq(1, 1, 0)),
+        arima211 = ARIMA(gdp ~ pdq(2, 1, 1)),
+        arima_auto = ARIMA(gdp)) |&gt; 
+  glance() |&gt; 
+  arrange(AICc) |&gt; 
+  select(.model, AIC, AICc) # Two selection criteria.
+```
+
+```
+#&gt; # A tibble: 3 × 3
+#&gt;   .model       AIC  AICc
+#&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 arima_auto 3937. 3937.
+#&gt; 2 arima110   3951. 3951.
+#&gt; 3 arima211   3955. 3955.
+```
+
+
+&lt;br&gt;
+
+
+The `{fable}` package estimates ARIMA models using .hi-slate[Maximum Likelihood (ML)] estimation, and its .hi-red[automatic] choice is for the model that .hi-red[minimizes] the corrected *Akaike Information Criterion* (*AICc*).
+
+
+---
+
+# Order selection
+
+.pull-left[
+
+```r
+infrate_ts |&gt; 
+  ACF(infrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-26-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+infrate_ts |&gt; 
+  PACF(infrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-27-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+# Order selection
+
+
+```r
+infrate_ts |&gt; 
+  model(arima500 = ARIMA(infrate ~ pdq(5, 0, 0)),
+        arima301 = ARIMA(infrate ~ pdq(3, 0, 1)),
+        arima_auto = ARIMA(infrate))
+```
+
+```
+#&gt; # A mable: 1 x 3
+#&gt;                 arima500               arima301             arima_auto
+#&gt;                  &lt;model&gt;                &lt;model&gt;                &lt;model&gt;
+#&gt; 1 &lt;ARIMA(5,0,0) w/ mean&gt; &lt;ARIMA(3,0,1) w/ mean&gt; &lt;ARIMA(1,0,2) w/ mean&gt;
+```
+
+
+
+---
+
+# Order selection
+
+
+```r
+infrate_ts |&gt; 
+  model(arima500 = ARIMA(infrate ~ pdq(5, 0, 0)),
+        arima301 = ARIMA(infrate ~ pdq(3, 0, 1)),
+        arima_auto = ARIMA(infrate)) |&gt; 
+  glance() |&gt; 
+  arrange(AICc) |&gt; 
+  select(.model, AIC, AICc)
+```
+
+```
+#&gt; # A tibble: 3 × 3
+#&gt;   .model       AIC  AICc
+#&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 arima_auto  319.  319.
+#&gt; 2 arima301    319.  320.
+#&gt; 3 arima500    319.  321.
+```
+
+
+
+---
+
+# Order selection
+
+.pull-left[
+
+```r
+unemp_ts |&gt; 
+  ACF(unrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-30-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+unemp_ts |&gt; 
+  PACF(unrate) |&gt; 
+  autoplot() +
+  easy_y_axis_title_size(18)
+```
+
+&lt;img src="009-arima-2_files/figure-html/unnamed-chunk-31-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+# Order selection
+
+
+```r
+unemp_ts |&gt; 
+  model(arima100 = ARIMA(unrate ~ pdq(1, 0, 0)),
+        arima101 = ARIMA(unrate ~ pdq(1, 0, 1)),
+        arima_auto = ARIMA(unrate))
+```
+
+```
+#&gt; # A mable: 1 x 3
+#&gt;                 arima100               arima101             arima_auto
+#&gt;                  &lt;model&gt;                &lt;model&gt;                &lt;model&gt;
+#&gt; 1 &lt;ARIMA(1,0,0) w/ mean&gt; &lt;ARIMA(1,0,1) w/ mean&gt; &lt;ARIMA(1,0,0) w/ mean&gt;
+```
+
+
+---
+
+# Order selection
+
+
+```r
+unemp_ts |&gt; 
+  model(arima100 = ARIMA(unrate ~ pdq(1, 0, 0)),
+        arima101 = ARIMA(unrate ~ pdq(1, 0, 1)),
+        arima_auto = ARIMA(unrate)) |&gt; 
+  glance() |&gt; 
+  arrange(AICc) |&gt; 
+  select(.model, AIC, AICc)
+```
+
+```
+#&gt; # A tibble: 3 × 3
+#&gt;   .model       AIC  AICc
+#&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 arima100    364.  364.
+#&gt; 2 arima_auto  364.  364.
+#&gt; 3 arima101    365.  365.
+```
 
 
 ---
