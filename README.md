@@ -12,6 +12,14 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+## Midterm exam
+
+<br>
+
+  - [`Midterm exam - due 03/29, 12:20 PM`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/midterm-ec361-sp24.pdf)
+
+<br>
+
 ## Lecture notes/slides
 
 <br>
@@ -92,6 +100,12 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 **012: Exponential smoothing: Further methods**
 
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-2.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/008-ets/008-ets-2.pdf)
+
+<br>
+
+**013: ARIMA models: Introduction**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima.pdf)
 
 <br>
 
