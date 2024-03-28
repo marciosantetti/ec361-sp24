@@ -109,6 +109,13 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+
+**014: ARIMA models: Further analysis**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-2.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-2.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
@@ -116,7 +123,8 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 The following code will install the main packages needed for the applied lectures.
 
 ```r
-install.packages(c("janitor", "feasts", "tsibble", "fable", "fabletools", "fpp3", "sugrrants"))
+install.packages(c("janitor", "feasts", "tsibble", "fable",
+                    "fabletools", "fpp3", "sugrrants"))
 ```
 
 
