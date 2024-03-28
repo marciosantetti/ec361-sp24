@@ -83,6 +83,22 @@ unemp_ts |>
   select(.model, AIC, AICc)
 
 
+
+##-- PACF by hand:
+
+unemp_ts |> 
+  PACF()
+
+unemp_ts |> 
+  model(reg1 = TSLM(unrate ~ lag(unrate, n = 1))) |> 
+  report()
+
+
+unemp_ts |> 
+  model(reg2 = TSLM(unrate ~ lag(unrate, n = 1) + lag(unrate, n = 2))) |> 
+  report()
+
+
 #--------------------------------------------------------------------------------
 
 
@@ -103,3 +119,23 @@ infrate_ts |>
   glance() |> 
   arrange(AICc) |> 
   select(.model, AIC, AICc)
+
+
+
+infrate_ts |> 
+  PACF() |> 
+  head(5)
+
+infrate_ts |> 
+  model(reg1 = TSLM(infrate ~ lag(infrate, n = 1))) |> 
+  report()
+
+
+infrate_ts |> 
+  model(reg2 = TSLM(infrate ~ lag(infrate, n = 1) + lag(infrate, n = 2))) |> 
+  report()
+
+infrate_ts |> 
+  model(reg3 = TSLM(infrate ~ lag(infrate, n = 1) + lag(infrate, n = 2) + lag(infrate, n = 3))) |> 
+  report()
+

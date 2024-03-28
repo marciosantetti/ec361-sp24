@@ -51,7 +51,7 @@ class: center, middle, inverse, title-slide
 
   - [`Hyndman &amp; Athanasopoulos, ch. 9`](https://otexts.com/fpp3/arima-r.html)
   
-    - sections 9.7&amp;mdash;??.
+    - sections 9.7&amp;mdash;9.8.
     
 
 
@@ -77,7 +77,7 @@ When deciding on the .hi-red[order] of our ARIMA models, a great starting point 
 
 &lt;br&gt;
 
-However, these can only do so much when deciding on which model to choose and perform our forecasts.
+However, these can only do .hi-slate[so much] when deciding on which model to choose and perform our forecasts.
 
 --
 
@@ -150,6 +150,205 @@ class: inverse, middle
 # An example
 
 
+---
+
+# An example
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# An example
+
+
+```r
+saving_ts |&gt; 
+  features(psav, unitroot_kpss)
+```
+
+```
+#&gt; # A tibble: 1 × 2
+#&gt;   kpss_stat kpss_pvalue
+#&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#&gt; 1      1.22        0.01
+```
+
+
+
+```r
+saving_ts |&gt; 
+  features(difference(psav), unitroot_kpss)
+```
+
+```
+#&gt; # A tibble: 1 × 2
+#&gt;   kpss_stat kpss_pvalue
+#&gt;       &lt;dbl&gt;       &lt;dbl&gt;
+#&gt; 1    0.0537         0.1
+```
+
+---
+
+# An example
+
+.pull-left[
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+
+
+---
+
+# An example
+
+
+```r
+saving_arima_fit &lt;- saving_ts |&gt; 
+  model(arima310 = ARIMA(psav ~ 1 + pdq(3, 1, 0)), # "1" includes a constant (c).
+        arima113 = ARIMA(psav ~ 1 + pdq(1, 1, 3)), # "1" includes a constant (c).
+        arima_auto = ARIMA(psav)) # letting {fable} select the best model.
+
+saving_arima_fit
+```
+
+```
+#&gt; # A mable: 1 x 3
+#&gt;                  arima310                arima113     arima_auto
+#&gt;                   &lt;model&gt;                 &lt;model&gt;        &lt;model&gt;
+#&gt; 1 &lt;ARIMA(3,1,0) w/ drift&gt; &lt;ARIMA(1,1,3) w/ drift&gt; &lt;ARIMA(0,1,2)&gt;
+```
+
+
+---
+
+# An example
+
+
+```r
+saving_arima_fit |&gt; 
+  glance() |&gt; 
+  arrange(AICc) |&gt; 
+  select(.model, AIC, AICc)
+```
+
+```
+#&gt; # A tibble: 3 × 3
+#&gt;   .model       AIC  AICc
+#&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
+#&gt; 1 arima_auto  250.  250.
+#&gt; 2 arima113    249.  250.
+#&gt; 3 arima310    254.  255.
+```
+
+
+---
+class: clear
+
+
+
+```r
+saving_arima_fit |&gt; 
+  select(arima310) |&gt; 
+  gg_tsresiduals()
+```
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# An example
+
+
+```r
+saving_arima_fit |&gt; 
+  augment() |&gt; 
+  filter(.model == "arima310") |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 3)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model   lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 arima310    11.7     0.110
+```
+
+
+---
+class: clear
+
+
+
+```r
+saving_arima_fit |&gt; 
+  select(arima113) |&gt; 
+  gg_tsresiduals()
+```
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# An example
+
+
+```r
+saving_arima_fit |&gt; 
+  augment() |&gt; 
+  filter(.model == "arima113") |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 4)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model   lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 arima113    15.2    0.0186
+```
+
+
+---
+class: clear
+
+
+
+```r
+saving_arima_fit |&gt; 
+  select(arima_auto) |&gt; 
+  gg_tsresiduals()
+```
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# An example
+
+
+```r
+saving_arima_fit |&gt; 
+  augment() |&gt; 
+  filter(.model == "arima_auto") |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 2)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model     lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 arima_auto    8.42     0.393
+```
+
 
 
 
@@ -162,6 +361,67 @@ class: inverse, middle
 ---
 
 # Forecasting with ARIMA
+
+Time to explain .hi-red[how] ARIMA forecasts are generated.
+
+--
+
+Suppose our model of choice is an .hi-blue[ARMA(2, 2)].
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = c + \phi_1y_{t-1} + \phi_2y_{t-2} + \theta_1\varepsilon_{t-1} + \theta_2\varepsilon_{t-2} + \varepsilon_t
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+--
+
+Let us derive the .hi-slate[point forecasts] for *T + 1* and *T + 2*:
+
+---
+
+# Forecasting with ARIMA
+
+Coming back to our example...
+
+&lt;br&gt;
+
+
+```r
+saving_arima_fc &lt;- saving_arima_fit |&gt; 
+  forecast(h = 6)
+```
+
+
+---
+
+# Forecasting with ARIMA
+
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Forecasting with ARIMA
+
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Forecasting with ARIMA
+
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+
 
 ---
 layout: false
