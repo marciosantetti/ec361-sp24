@@ -192,14 +192,41 @@ saving_ts |&gt;
 
 # An example
 
-.pull-left[
 &lt;img src="009-arima-3_files/figure-html/unnamed-chunk-4-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# An example
+
+
+Series in .b[levels]:
+
+.pull-left[
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
 
 ]
 
 .pull-right[
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-5-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+
+# An example
+
+
+Series in .b[first differences]:
+
+.pull-left[
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-7-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
 
 ]
 
@@ -212,8 +239,8 @@ saving_ts |&gt;
 
 ```r
 saving_arima_fit &lt;- saving_ts |&gt; 
-  model(arima310 = ARIMA(psav ~ 1 + pdq(3, 1, 0)), # "1" includes a constant (c).
-        arima113 = ARIMA(psav ~ 1 + pdq(1, 1, 3)), # "1" includes a constant (c).
+  model(arima012 = ARIMA(psav ~ pdq(0, 1, 2)), # "1 + pdq()" includes a constant (c) if needed.
+        arima210 = ARIMA(psav ~ pdq(2, 1, 0)), # "1 + pdq()" includes a constant (c) if needed.
         arima_auto = ARIMA(psav)) # letting {fable} select the best model.
 
 saving_arima_fit
@@ -221,9 +248,9 @@ saving_arima_fit
 
 ```
 #&gt; # A mable: 1 x 3
-#&gt;                  arima310                arima113     arima_auto
-#&gt;                   &lt;model&gt;                 &lt;model&gt;        &lt;model&gt;
-#&gt; 1 &lt;ARIMA(3,1,0) w/ drift&gt; &lt;ARIMA(1,1,3) w/ drift&gt; &lt;ARIMA(0,1,2)&gt;
+#&gt;         arima012       arima210     arima_auto
+#&gt;          &lt;model&gt;        &lt;model&gt;        &lt;model&gt;
+#&gt; 1 &lt;ARIMA(0,1,2)&gt; &lt;ARIMA(2,1,0)&gt; &lt;ARIMA(0,1,2)&gt;
 ```
 
 
@@ -243,9 +270,9 @@ saving_arima_fit |&gt;
 #&gt; # A tibble: 3 × 3
 #&gt;   .model       AIC  AICc
 #&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;dbl&gt;
-#&gt; 1 arima_auto  250.  250.
-#&gt; 2 arima113    249.  250.
-#&gt; 3 arima310    254.  255.
+#&gt; 1 arima012    250.  250.
+#&gt; 2 arima_auto  250.  250.
+#&gt; 3 arima210    251.  252.
 ```
 
 
@@ -256,11 +283,11 @@ class: clear
 
 ```r
 saving_arima_fit |&gt; 
-  select(arima310) |&gt; 
+  select(arima012) |&gt; 
   gg_tsresiduals()
 ```
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-8-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-11-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -271,15 +298,15 @@ saving_arima_fit |&gt;
 ```r
 saving_arima_fit |&gt; 
   augment() |&gt; 
-  filter(.model == "arima310") |&gt; 
-  features(.innov, ljung_box, lag = 10, dof = 3)
+  filter(.model == "arima012") |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 2)
 ```
 
 ```
 #&gt; # A tibble: 1 × 3
 #&gt;   .model   lb_stat lb_pvalue
 #&gt;   &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-#&gt; 1 arima310    11.7     0.110
+#&gt; 1 arima012    8.42     0.393
 ```
 
 
@@ -290,11 +317,11 @@ class: clear
 
 ```r
 saving_arima_fit |&gt; 
-  select(arima113) |&gt; 
+  select(arima210) |&gt; 
   gg_tsresiduals()
 ```
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -304,15 +331,15 @@ saving_arima_fit |&gt;
 ```r
 saving_arima_fit |&gt; 
   augment() |&gt; 
-  filter(.model == "arima113") |&gt; 
-  features(.innov, ljung_box, lag = 10, dof = 4)
+  filter(.model == "arima210") |&gt; 
+  features(.innov, ljung_box, lag = 10, dof = 2)
 ```
 
 ```
 #&gt; # A tibble: 1 × 3
 #&gt;   .model   lb_stat lb_pvalue
 #&gt;   &lt;chr&gt;      &lt;dbl&gt;     &lt;dbl&gt;
-#&gt; 1 arima113    15.2    0.0186
+#&gt; 1 arima210    11.9     0.158
 ```
 
 
@@ -327,7 +354,7 @@ saving_arima_fit |&gt;
   gg_tsresiduals()
 ```
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-12-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -402,14 +429,14 @@ saving_arima_fc &lt;- saving_arima_fit |&gt;
 # Forecasting with ARIMA
 
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-18-1.svg" style="display: block; margin: auto;" /&gt;
 
 ---
 
 # Forecasting with ARIMA
 
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-16-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 ---
@@ -417,7 +444,7 @@ saving_arima_fc &lt;- saving_arima_fit |&gt;
 # Forecasting with ARIMA
 
 
-&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+&lt;img src="009-arima-3_files/figure-html/unnamed-chunk-20-1.svg" style="display: block; margin: auto;" /&gt;
 
 
 

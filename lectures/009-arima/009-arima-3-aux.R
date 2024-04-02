@@ -56,6 +56,23 @@ saving_ts |>
   easy_y_axis_title_size(15)
 
 
+saving_ts |> 
+  ACF(difference(psav, lag = 1)) |> 
+  autoplot() +
+  labs(title = "ACF plot",
+       y = "ACF") +
+  easy_y_axis_title_size(15)
+
+
+
+saving_ts |> 
+  PACF(difference(psav, lag = 1)) |> 
+  autoplot() +
+  labs(title = "PACF plot",
+       y = "PACF") +
+  easy_y_axis_title_size(15)
+
+
 
 saving_arima_fit <- saving_ts |> 
   model(arima310 = ARIMA(psav ~ 1 + pdq(3, 1, 0)), # "1" includes a constant (c).
@@ -136,20 +153,44 @@ data_ts |>
 
 
 data_ts |> 
-  model(arima22 = ARIMA(yt ~ 1 + pdq(2, 0, 2))) |>
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2))) |>
   report()
 
 
 data_ts |> 
-  model(arima22 = ARIMA(yt ~ 1 + pdq(2, 0, 2))) |> 
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2))) |> 
   augment() |> View()
 
 data_ts |> 
-  model(arima22 = ARIMA(yt ~ 1 + pdq(2, 0, 2))) |> 
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2))) |> 
   augment() |> 
   ggplot(aes(x = T, y = yt)) +
   geom_line(aes(color = "Y")) +
   geom_line(aes(y = .fitted, color = "Fitted values"))
+
+data_ts |> 
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2))) |> 
+  augment() |> 
+  View()
+
+data_ts |> 
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2)))  |> 
+  report()
+
+# y_t_hat = 15.8164 -0.2181 * y_t-1 + 0.5454 * y_t-2 - 0.0194 * epsilon_t-1 -0.9806 * epsilon_t-2
+
+
+data_ts |> 
+  model(arima22 = ARIMA(arma22 ~ 1 + pdq(2, 0, 2))) |> 
+  forecast(h = 2) 
+
+# y_t+1 = 15.8164 -0.2181 * y_t + 0.5454 * y_t-1 - 0.0194 * epsilon_t_hat -0.9806 * epsilon_t-1_hat
+
+# y_t+1 = 15.8164 -0.2181 * 22.35743 + 0.5454 * 24.07827 - 0.0194 * -0.985449691 -0.9806 * 0.703281294
+
+# y_t+2 = 15.8164 -0.2181 * y_t+1 + 0.5454 * y_t - 0.0194 * epsilon_t+1t -0.9806 * epsilon_t_hat
+
+# y_t+2 = 15.8164 -0.2181 * 23.40201 + 0.5454 * 22.35743 - 0.0194 * 0 -0.9806 * -0.985449691
 
 
 data_ts |> 
@@ -159,3 +200,50 @@ data_ts |>
 
 
 #--------------------------------------------------------------------------------
+
+
+y <- numeric(100)
+e <- rnorm(100)
+for(i in 2:100)
+  y[i] <- 0.6*y[i-1] + e[i]
+sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+
+
+sim |> 
+  View()
+
+sim |> 
+  model(ar = ARIMA(y ~ pdq(1,0,0))) |>  
+  report()
+
+sim |> 
+  model(ar = ARIMA(y ~ pdq(1,0,0))) |>  
+  augment() |> 
+  View()
+
+sim |> 
+  model(ar = ARIMA(y ~ pdq(1,0,0))) |> 
+  forecast(h=2)
+
+
+# y_t = phi_1 * y_t-1 + epsilon_t
+
+# y_t_hat = 0.7489 * y_t-1
+
+# y_t+1 = 0.7489 * y_t_hat
+
+# y_t+1 = 0.7489 * 0.98363049
+
+
+
+
+#--------------------------------------------------------------------------------
+
+
+## From book chapter:
+
+global_economy |> 
+  filter(Code == "CAF") |> 
+  gg_tsdisplay(Exports, plot_type = "partial")
+
+
