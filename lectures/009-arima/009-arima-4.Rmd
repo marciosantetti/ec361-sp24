@@ -70,6 +70,7 @@ purple <- "#6A5ACD"
   - [`Hyndman & Athanasopoulos, ch. 9`](https://otexts.com/fpp3/seasonal-arima.html)
   
     - sections 9.9&mdash;9.10.
+    - reading 9.10 is *optional.*
     
 
 
@@ -85,11 +86,469 @@ class: inverse, middle
 
 <br>
 
+By now, we know that time series that show prominent .hi-slate[trends] will *not* be stationary.
+
+--
+
+<br>
+
+In addition, when .hi-red[seasonality] is present, the time series .hi-blue[will not be stationary].
+
+--
+
+<br>
+
+There are specific .b[ARIMA] models that deal with seasonal series, and this is what this lecture is about.
+
 
 ---
-layout: inverse, middle
+class: inverse, middle
 
 # Seasonal ARIMA models
+
+---
+
+# Seasonal ARIMA models
+
+A .hi-red[seasonal ARIMA] model is formed by including .hi-slate[additional seasonal terms] in the ARIMA models we have seen so far.
+
+--
+
+<br>
+
+A seasonal ARIMA model can be expressed as follows:
+
+$$
+\begin{aligned}
+\text{ARIMA}\underset{\text{Non-seasonal part}}{\underbrace{(p,d,q)}} \ \ \ \underset{\text{Seasonal part}}{\underbrace{(P,D,Q)_m}}
+\end{aligned}
+$$
+
+<br>
+
+--
+
+Notice that we will adopt .hi-red[upper-case] letters *(P, D, Q)* to express the ARIMA terms of the seasonal component.
+
+---
+
+# Seasonal ARIMA models
+
+For example, an .hi-slate[ARIMA(1, 1, 1) (2, 1, 1)<sub>4</sub>] denotes a seasonal ARIMA model for *quarterly* data (*m = 4*), where to achieve stationarity we need:
+
+  - to take first differences (*d = 1*);
+  
+  - to take an additional seasonal difference (*D = 1*).
+  
+--
+
+<br>
+
+In addition, the .hi-red[seasonal] part has *two* autoregressive and *one* moving-average component, while the .hi-blue[non-seasonal] part has one *AR* and one *MA* component.
+
+--
+
+<br>
+
+In terms of .hi[order selection], we still make use of .b[ACF] and .b[PACF] plots for help.
+  
+
+---
+
+# Seasonal ARIMA models
+
+The seasonal part of an *ARIMA* model will be seen in the .hi-red[seasonal lags] of the PACF and ACF plots. 
+
+--
+
+As an example, consider an .b[*ARIMA(0, 0, 0) (0, 0, 1)<sub>12</sub>*] model.
+
+--
+
+It will show the following features:
+
+  - A *spike* at lag 12 in the ACF but no other significant spikes;
+  - exponential *decay* in the seasonal lags of the PACF (i.e., at lags 12, 24, 36, ...).
+  
+--
+
+
+In a similar way, for an .b[*ARIMA(0, 0, 0) (1, 0, 0)<sub>12</sub>*] model, we will see:
+
+  - Exponential *decay* in the seasonal lags of the ACF;
+  - A single significant *spike* at lag 12 in the PACF.
+  
+--
+
+
+
+Thus, when deciding on the *P* and *Q* values of a seasonal ARIMA model, we must restrict our attention to the .hi[seasonal lags].
+
+
+---
+
+# Seasonal ARIMA models
+
+<br><br><br>
+
+The .hi[Hyndman-Khandakar algorithm] looks and works basically in the same way as seen in the previous lecture.
+
+--
+
+
+<br><br>
+
+It will only differ as additional parameters (namely *P*, *D*, and *Q*) need to be included in the mix.
+
+
+
+
+---
+
+# Seasonal ARIMA models
+
+
+```{r, echo=F}
+
+air <- read_csv("air_passengers.csv")
+
+
+air_ts <- air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date)
+
+
+
+air_ts |> 
+  ggplot(aes(x = date, y = passengers)) +
+  geom_line() +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+
+
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F}
+air_ts |> 
+  gg_season(labels = "right") +
+  labs(title = "U.S. air passengers: Seasonal plot")
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F}
+air_ts |> 
+  ACF(lag_max = 36) |> 
+  autoplot() +
+  labs(title = "U.S. air passengers: ACF plot")
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+Is the series stationary?
+
+```{r}
+air_ts |> 
+  features(passengers, unitroot_kpss)
+```
+
+
+---
+
+class: clear
+
+```{r, fig.height=7}
+air_ts |> 
+  mutate(seas_diff = difference(passengers, lag = 12)) |> # taking seasonal differencing.
+  gg_tsdisplay(seas_diff, plot_type = "partial")
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+Is the .hi-red[seasonally differenced] series stationary?
+
+```{r}
+air_ts |> 
+  mutate(seas_diff = difference(passengers, lag = 12)) |>
+  features(seas_diff, unitroot_kpss)
+```
+
+
+---
+class: clear
+
+```{r, fig.height=6.5}
+air_ts |> 
+  mutate(seas_diff = difference(passengers, lag = 12),
+         dseas_diff = difference(seas_diff, lag = 1)) |>  #taking 1st difference of seasonal difference.
+  gg_tsdisplay(dseas_diff, plot_type = "partial")
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+
+Have we achieved stationarity?
+
+```{r}
+air_ts |> 
+  mutate(seas_diff = difference(passengers, lag = 12),
+         dseas_diff = difference(seas_diff, lag = 1)) |>
+  features(dseas_diff, unitroot_kpss)
+```
+
+
+---
+class: clear
+
+Let us use the .hi-blue[ACF] and .hi-blue[PACF] plots to decide on the appropriate AR and MA orders.
+
+```{r, echo=F}
+
+air_ts <- air_ts |> 
+  mutate(seas_diff = difference(passengers, lag = 12),
+         dseas_diff = difference(seas_diff, lag = 1))
+
+```
+
+.pull-left[
+
+```{r, fig.width = 9, fig.height = 7}
+air_ts |> 
+  ACF(dseas_diff) |> 
+  autoplot() +
+  labs(title = "ACF plot")
+```
+]
+
+.pull-right[
+```{r, fig.width = 9, fig.height = 7}
+air_ts |> 
+  PACF(dseas_diff) |> 
+  autoplot() +
+  labs(title = "PACF plot")
+```
+]
+
+
+---
+
+# Seasonal ARIMA models
+
+Estimating a few models:
+
+```{r}
+air_arima_fit <- air_ts |> 
+  model(arima110_010 = ARIMA(passengers ~ pdq(1, 1, 0) + PDQ(0, 1, 0)),
+        arima011_010 = ARIMA(passengers ~ pdq(0, 1, 1) + PDQ(0, 1, 0)),
+        arima310_010 = ARIMA(passengers ~ pdq(3, 1, 0) + PDQ(0, 1, 0)),
+        arima_auto = ARIMA(passengers))
+
+air_arima_fit
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r}
+air_arima_fit |> 
+  glance() |> 
+  arrange(AICc) |> 
+  select(.model, AIC, AICc)
+```
+
+
+---
+class: clear
+
+```{r, fig.height = 7}
+air_arima_fit |> 
+  select(arima_auto) |> 
+  gg_tsresiduals()
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+Are residuals .hi-slate[white noise]?
+
+```{r}
+air_arima_fit |> 
+  augment() |> 
+  filter(.model == "arima_auto") |> 
+  features(.innov, ljung_box, lag = 2 * 12, dof = 3)
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F}
+air_ts |> 
+  ggplot(aes(x = date, y = log(passengers))) +
+  geom_line() +
+  labs(title = "International airline passengers (logs)",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "log(Thousands)") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+```
+
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F}
+
+air_ts |> 
+  mutate(log_seas_diff = difference(log(passengers), lag = 12)) |> 
+  autoplot(log_seas_diff) +
+  labs(title = "U.S. air passengers: Seasonal difference (logs)",
+       y = "",
+       x = "")
+```
+
+
+
+---
+
+# Seasonal ARIMA models
+
+
+
+```{r}
+air_ts <- air_ts |> 
+  mutate(log_seas_diff = difference(log(passengers), lag = 12))
+
+
+air_ts |> 
+  features(log_seas_diff, unitroot_kpss)
+```
+
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F, fig.width=14}
+
+acf2 <- air_ts |> 
+  ACF(log_seas_diff) |> 
+  autoplot() +
+  labs(title = "ACF plot")
+
+pacf2 <- air_ts |> 
+  PACF(log_seas_diff) |> 
+  autoplot() +
+  labs(title = "PACF plot")
+
+acf2 | pacf2
+```
+
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r}
+air_log_fit <- air_ts |> 
+  model(arima200_011 = ARIMA(log(passengers) ~ 1 + pdq(2, 0, 0) + PDQ(0, 1, 1)),
+        arima202_011 = ARIMA(log(passengers) ~ 1 + pdq(2, 0, 2) + PDQ(0, 1, 1)),
+        arima_auto = ARIMA(log(passengers))) 
+
+
+air_log_fit |> 
+  glance() |> 
+  arrange(AICc) |> 
+  select(.model, AIC, AICc)
+```
+
+
+---
+class: clear
+
+
+```{r, fig.height=7}
+air_log_fit |> 
+  select(arima_auto) |> 
+  gg_tsresiduals()
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+Are the residuals .hi-slate[white noise]?
+
+```{r}
+air_log_fit |> 
+  augment() |> 
+  filter(.model == "arima_auto") |> 
+  features(.innov, ljung_box, lag = 2 * 12, dof = 3)
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r, echo=F}
+air_log_fit |> 
+  select(arima_auto) |> 
+  forecast(h = 24) |> 
+  autoplot(air_ts, level = 95, linewidth = .9, color = "#73797f") +
+  labs(title = "24-month ahead forecast",
+       subtitle = "U.S. air passengers",
+       y = "Thousands",
+       x = "")
+```
+
+
+---
+
+# Seasonal ARIMA models
+
+```{r}
+
+air_log_fit |> 
+  select(arima_auto) |> 
+  forecast(h = 24) |> 
+  head(5)
+```
+
 
 ---
 layout: false
