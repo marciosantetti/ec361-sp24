@@ -121,6 +121,14 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
   - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-3.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-3.pdf)
 
+
+<br>
+
+
+**016: ARIMA models: Addressing seasonality**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-4.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/009-arima/009-arima-4.pdf)
+
 <br>
 
 ## Applied lectures
