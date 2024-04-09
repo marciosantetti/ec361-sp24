@@ -183,6 +183,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable",
   - [`Part 1`](https://youtu.be/agEy_EHCKyo)
   - [`Part 2`](https://youtu.be/AK9QrnKr9Zw)
 
+<br>
+
+**005: ARIMA models**
+
+  - [`Part 1`](https://youtu.be/VQaesZQNX4U)
+  - [`Part 2`](https://youtu.be/lkcRg1XkrSo)
+
 
 <br>
 
