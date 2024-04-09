@@ -131,6 +131,13 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+
+**017: Dynamic regression models: Introduction**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/010-dyn-reg/010-dynamic-reg.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/010-dyn-reg/010-dynamic-reg.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
