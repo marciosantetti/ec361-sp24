@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>.b[Dynamic regression models: Introduction]</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Prof. Santetti" />
+    <script src="010-dynamic-reg_files/header-attrs/header-attrs.js"></script>
+    <link href="010-dynamic-reg_files/remark-css/default.css" rel="stylesheet" />
+    <link href="010-dynamic-reg_files/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="010-dynamic-reg_files/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="skid-css.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# .b[Dynamic regression models: Introduction]
+]
+.subtitle[
+## .b[.green[EC 361–001]]
+]
+.author[
+### Prof. Santetti
+]
+.date[
+### Spring 2024
+]
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+# Materials
+
+&lt;br&gt;
+
+.b[Required readings]:
+
+&lt;br&gt;
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 7`](https://otexts.com/fpp3/regression.html)
+  
+    - sections 7.1&amp;mdash;7.5.
+
+
+  - [`Hyndman &amp; Athanasopoulos, ch. 10`](https://otexts.com/fpp3/dynamic.html)
+  
+    - section 10.1.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+&lt;br&gt;
+
+After studying .hi[ARIMA] models, we have seen that we *can* (and *should*, when possible) include .hi-slate[information from past observations of a series] for modeling/forecasting purposes.
+
+--
+
+However, one .hi-red[limitation] of such models is that they do not allow for the inclusion of .hi-blue[exogenous factors].
+
+--
+
+&lt;br&gt;
+
+By .hi-blue[exogenous] factors we mean including other .hi-red[explanatory variables] that may be relevant to model and forecast a variable's behavior over time.
+
+--
+
+To this end, we turn our attention to .hi-slate[dynamic regression models].
+
+
+---
+class: inverse, middle
+
+# Time-series regression models
+
+---
+
+# Time-series regression models
+
+When applied to *time series data*, a .hi-blue[regression model] looks like the following:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = \beta_0 + \beta_1x_{1t} + \beta_2x_{2t} + \cdot \cdot \cdot + \beta_kx_{kt} + \varepsilon_t   
+\end{aligned}`
+$$
+
+--
+
+&lt;br&gt;
+
+In words, the .hi-red[dependent] variable `\(y_t\)` is a .hi-slate[linear function] of *k* .hi-blue[predictor/independent] variables, as well of a .hi-red[stochastic] error term `\((\varepsilon_t)\)`, which is assumed to be .hi[white noise] and .hi-orange[uncorrelated] with the RHS variables.
+
+--
+
+However, when it comes to time series data, .hi-blue[residual autocorrelation] is a common *issue*.
+
+--
+
+To *overcome* that issue, one *alternative* is to incorporate such serial correlation into our residuals through .hi-slate[ARIMA modeling].
+
+---
+class: middle, inverse
+
+# The basics
+
+---
+
+# The basics
+
+&lt;br&gt;
+
+Starting from a .hi-blue[simple regression model]:
+
+
+&lt;br&gt;&lt;br&gt;
+
+$$
+`\begin{aligned}
+\text{Consumption}_t = \beta_0 + \beta_1\text{Disposable Income}_t + \varepsilon_t
+\end{aligned}`
+$$
+
+---
+
+# The basics
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-1-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# The basics
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-2-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# The basics
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-3-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+class: clear
+
+
+In .mono[R], the `{fable}` package handles linear regression through the `TSLM()` function.
+
+
+```r
+dat_ts |&gt; 
+  model(reg = TSLM(cons ~ inc)) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: cons 
+#&gt; Model: TSLM 
+#&gt; 
+#&gt; Residuals:
+#&gt;     Min      1Q  Median      3Q     Max 
+#&gt; -3918.8  -180.9    48.7   153.5   922.6 
+#&gt; 
+#&gt; Coefficients:
+#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept) 2.044e+03  3.087e+02   6.622 3.08e-10 ***
+#&gt; inc         7.579e-01  2.154e-02  35.191  &lt; 2e-16 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 535.2 on 204 degrees of freedom
+#&gt; Multiple R-squared: 0.8586,	Adjusted R-squared: 0.8579
+#&gt; F-statistic:  1238 on 1 and 204 DF, p-value: &lt; 2.22e-16
+```
+
+
+
+
+
+---
+
+class: clear
+
+
+```r
+reg_fit |&gt; gg_tsresiduals()
+```
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-6-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+# The basics
+
+Are the residuals .hi-slate[white noise]?
+
+
+```r
+reg_fit |&gt; 
+  augment() |&gt; 
+  features(.innov, ljung_box, lag = 10)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 reg       481.         0
+```
+
+
+---
+class: inverse, middle
+
+# Useful predictors
+
+
+---
+
+# Useful predictors
+
+When a time series shows .hi-blue[trend] and/or .hi-red[seasonality], one good *first step* may be .hi-red[explicitly] incorporating these features on a regression's right-hand side.
+
+--
+
+A .hi-slate[linear trend] may be modeled in the following way:
+
+&lt;br&gt;
+
+$$
+`\begin{aligned}
+y_t = \beta_0 + \beta_1t + \varepsilon_t   
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+where *t = 1, 2, ..., T*.
+
+---
+class: clear
+
+
+```r
+dat_ts |&gt; 
+  model(reg_trend = TSLM(cons ~ trend())) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: cons 
+#&gt; Model: TSLM 
+#&gt; 
+#&gt; Residuals:
+#&gt;      Min       1Q   Median       3Q      Max 
+#&gt; -2343.74  -195.48   -77.25   311.25   712.36 
+#&gt; 
+#&gt; Coefficients:
+#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept) 10445.63      51.32  203.52   &lt;2e-16 ***
+#&gt; trend()        23.01       0.43   53.51   &lt;2e-16 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 367 on 204 degrees of freedom
+#&gt; Multiple R-squared: 0.9335,	Adjusted R-squared: 0.9332
+#&gt; F-statistic:  2864 on 1 and 204 DF, p-value: &lt; 2.22e-16
+```
+
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-9-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Useful predictors
+
+.hi-red[Seasonality] can be easily handled with the use of .hi-slate[dummy (binary)] variables.
+
+--
+
+The idea is to .hi-blue[encode] specific seasonal periods with either *1* or *0* values.
+
+--
+
+  - In .mono[R], the `TSLM()` function takes care of seasonal dummies for us.
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+In terms of .hi-blue[interpretation], each of the coefficients associated with the dummy variables is a measure of the effect of *that category* .hi-slate[relative to] the *omitted* category.
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-10-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+
+---
+
+class: clear
+
+
+```r
+recent_production |&gt; 
+  model(reg_season = TSLM(Beer ~ season())) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: Beer 
+#&gt; Model: TSLM 
+#&gt; 
+#&gt; Residuals:
+#&gt;      Min       1Q   Median       3Q      Max 
+#&gt; -47.6667 -10.4167  -0.2997   8.7449  30.3333 
+#&gt; 
+#&gt; Coefficients:
+#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)    429.211      3.271 131.234  &lt; 2e-16 ***
+#&gt; season()year2  -35.000      4.625  -7.567 1.14e-10 ***
+#&gt; season()year3  -17.822      4.689  -3.801 0.000305 ***
+#&gt; season()year4   72.456      4.689  15.452  &lt; 2e-16 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 14.26 on 70 degrees of freedom
+#&gt; Multiple R-squared: 0.8957,	Adjusted R-squared: 0.8912
+#&gt; F-statistic: 200.3 on 3 and 70 DF, p-value: &lt; 2.22e-16
+```
+
+
+---
+
+class: clear
+
+
+```r
+recent_production |&gt; 
+  model(reg_season = TSLM(Beer ~ trend() + season())) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: Beer 
+#&gt; Model: TSLM 
+#&gt; 
+#&gt; Residuals:
+#&gt;      Min       1Q   Median       3Q      Max 
+#&gt; -42.9029  -7.5995  -0.4594   7.9908  21.7895 
+#&gt; 
+#&gt; Coefficients:
+#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)   441.80044    3.73353 118.333  &lt; 2e-16 ***
+#&gt; trend()        -0.34027    0.06657  -5.111 2.73e-06 ***
+#&gt; season()year2 -34.65973    3.96832  -8.734 9.10e-13 ***
+#&gt; season()year3 -17.82164    4.02249  -4.430 3.45e-05 ***
+#&gt; season()year4  72.79641    4.02305  18.095  &lt; 2e-16 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 12.23 on 69 degrees of freedom
+#&gt; Multiple R-squared: 0.9243,	Adjusted R-squared: 0.9199
+#&gt; F-statistic: 210.7 on 4 and 69 DF, p-value: &lt; 2.22e-16
+```
+
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-13-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Useful predictors
+
+
+
+
+
+
+```r
+recent_production |&gt; 
+  model(reg_season = TSLM(Beer ~ trend() + season())) |&gt; 
+  augment() |&gt;
+  features(.innov, ljung_box, lag = 2 * 4)
+```
+
+```
+#&gt; # A tibble: 1 × 3
+#&gt;   .model     lb_stat lb_pvalue
+#&gt;   &lt;chr&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+#&gt; 1 reg_season    10.4     0.240
+```
+
+
+&lt;br&gt;&lt;br&gt;
+
+Are residuals .hi-slate[white noise]?
+
+---
+
+# Useful predictors
+
+An alternative way of .hi-blue[modeling seasonality] is to incorporate .hi-red[Fourier terms].
+
+--
+
+These are *sine* and *cosine* terms used to approximate .hi-slate[periodic functions].
+
+--
+
+As time series show *periodic* behavior, Fourier terms are well-suited for .hi-red[seasonal series].
+
+
+--
+
+&lt;br&gt;
+
+If *m* is the seasonal period, then the first few Fourier terms are given by 
+
+&lt;br&gt;
+
+.center[
+&lt;img src="sin.png", width = "50%"&gt;
+]
+
+
+---
+
+# Useful predictors
+
+&lt;br&gt;
+
+The .hi-red[maximum] number of Fourier terms allowed is given by *K = m/2*, where *m* is the number of seasonal periods in a year.
+
+--
+
+&lt;br&gt;
+
+A regression model containing Fourier terms is often called a .hi-slate[harmonic regression]. 
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-15-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: clear
+
+.smallest[
+
+```r
+air_ts |&gt; 
+  model(reg = TSLM(log(passengers) ~ trend() + season())) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: passengers 
+#&gt; Model: TSLM 
+#&gt; Transformation: log(passengers) 
+#&gt; 
+#&gt; Residuals:
+#&gt;       Min        1Q    Median        3Q       Max 
+#&gt; -0.156370 -0.041016  0.003677  0.044069  0.132324 
+#&gt; 
+#&gt; Coefficients:
+#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)     4.7267804  0.0188935 250.180  &lt; 2e-16 ***
+#&gt; trend()         0.0100688  0.0001193  84.399  &lt; 2e-16 ***
+#&gt; season()year2  -0.0220548  0.0242109  -0.911  0.36400    
+#&gt; season()year3   0.1081723  0.0242118   4.468 1.69e-05 ***
+#&gt; season()year4   0.0769034  0.0242132   3.176  0.00186 ** 
+#&gt; season()year5   0.0745308  0.0242153   3.078  0.00254 ** 
+#&gt; season()year6   0.1966770  0.0242179   8.121 2.98e-13 ***
+#&gt; season()year7   0.3006193  0.0242212  12.411  &lt; 2e-16 ***
+#&gt; season()year8   0.2913245  0.0242250  12.026  &lt; 2e-16 ***
+#&gt; season()year9   0.1466899  0.0242294   6.054 1.39e-08 ***
+#&gt; season()year10  0.0085316  0.0242344   0.352  0.72537    
+#&gt; season()year11 -0.1351861  0.0242400  -5.577 1.34e-07 ***
+#&gt; season()year12 -0.0213211  0.0242461  -0.879  0.38082    
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 0.0593 on 131 degrees of freedom
+#&gt; Multiple R-squared: 0.9835,	Adjusted R-squared: 0.982
+#&gt; F-statistic: 649.4 on 12 and 131 DF, p-value: &lt; 2.22e-16
+```
+]
+
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-17-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Useful predictors
+
+.smallest[
+
+```r
+air_ts |&gt; 
+  model(reg = TSLM(log(passengers) ~ trend() + fourier(K = 2))) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: passengers 
+#&gt; Model: TSLM 
+#&gt; Transformation: log(passengers) 
+#&gt; 
+#&gt; Residuals:
+#&gt;       Min        1Q    Median        3Q       Max 
+#&gt; -0.172892 -0.040363  0.002417  0.046796  0.164906 
+#&gt; 
+#&gt; Coefficients:
+#&gt;                       Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)          4.8112150  0.0114209 421.262  &lt; 2e-16 ***
+#&gt; trend()              0.0100822  0.0001368  73.725  &lt; 2e-16 ***
+#&gt; fourier(K = 2)C1_12 -0.1474737  0.0080184 -18.392  &lt; 2e-16 ***
+#&gt; fourier(K = 2)S1_12  0.0282074  0.0080334   3.511 0.000603 ***
+#&gt; fourier(K = 2)C2_12  0.0567457  0.0080184   7.077 6.79e-11 ***
+#&gt; fourier(K = 2)S2_12  0.0591195  0.0080207   7.371 1.41e-11 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 0.06803 on 138 degrees of freedom
+#&gt; Multiple R-squared: 0.9771,	Adjusted R-squared: 0.9763
+#&gt; F-statistic:  1177 on 5 and 138 DF, p-value: &lt; 2.22e-16
+```
+]
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-19-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Useful predictors
+
+.smallest[
+
+```r
+air_ts |&gt; 
+  model(reg = TSLM(log(passengers) ~ trend() + fourier(K = 4))) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: passengers 
+#&gt; Model: TSLM 
+#&gt; Transformation: log(passengers) 
+#&gt; 
+#&gt; Residuals:
+#&gt;        Min         1Q     Median         3Q        Max 
+#&gt; -0.1379894 -0.0416537  0.0004086  0.0446304  0.1338178 
+#&gt; 
+#&gt; Coefficients:
+#&gt;                       Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)          4.8121301  0.0102284 470.467  &lt; 2e-16 ***
+#&gt; trend()              0.0100696  0.0001225  82.208  &lt; 2e-16 ***
+#&gt; fourier(K = 4)C1_12 -0.1474864  0.0071785 -20.546  &lt; 2e-16 ***
+#&gt; fourier(K = 4)S1_12  0.0281603  0.0071920   3.916 0.000143 ***
+#&gt; fourier(K = 4)C2_12  0.0567331  0.0071785   7.903 8.84e-13 ***
+#&gt; fourier(K = 4)S2_12  0.0590977  0.0071806   8.230 1.46e-13 ***
+#&gt; fourier(K = 4)C3_12 -0.0087300  0.0071785  -1.216 0.226072    
+#&gt; fourier(K = 4)S3_12 -0.0272914  0.0071785  -3.802 0.000217 ***
+#&gt; fourier(K = 4)C4_12  0.0111072  0.0071785   1.547 0.124154    
+#&gt; fourier(K = 4)S4_12 -0.0319853  0.0071778  -4.456 1.75e-05 ***
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 0.0609 on 134 degrees of freedom
+#&gt; Multiple R-squared: 0.9822,	Adjusted R-squared: 0.981
+#&gt; F-statistic: 819.9 on 9 and 134 DF, p-value: &lt; 2.22e-16
+```
+]
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-21-1.svg" style="display: block; margin: auto;" /&gt;
+
+
+---
+
+# Useful predictors
+
+.smallest[
+
+```r
+air_ts |&gt; 
+  model(reg = TSLM(log(passengers) ~ trend() + fourier(K = 6))) |&gt; 
+  report()
+```
+
+```
+#&gt; Series: passengers 
+#&gt; Model: TSLM 
+#&gt; Transformation: log(passengers) 
+#&gt; 
+#&gt; Residuals:
+#&gt;       Min        1Q    Median        3Q       Max 
+#&gt; -0.156370 -0.041016  0.003677  0.044069  0.132324 
+#&gt; 
+#&gt; Coefficients:
+#&gt;                       Estimate Std. Error t value Pr(&gt;|t|)    
+#&gt; (Intercept)          4.8121876  0.0099616 483.076  &lt; 2e-16 ***
+#&gt; trend()              0.0100688  0.0001193  84.399  &lt; 2e-16 ***
+#&gt; fourier(K = 6)C1_12 -0.1474871  0.0069900 -21.100  &lt; 2e-16 ***
+#&gt; fourier(K = 6)S1_12  0.0281573  0.0070032   4.021 9.74e-05 ***
+#&gt; fourier(K = 6)C2_12  0.0567323  0.0069900   8.116 3.06e-13 ***
+#&gt; fourier(K = 6)S2_12  0.0590963  0.0069920   8.452 4.81e-14 ***
+#&gt; fourier(K = 6)C3_12 -0.0087308  0.0069900  -1.249  0.21388    
+#&gt; fourier(K = 6)S3_12 -0.0272922  0.0069900  -3.904  0.00015 ***
+#&gt; fourier(K = 6)C4_12  0.0111064  0.0069900   1.589  0.11450    
+#&gt; fourier(K = 6)S4_12 -0.0319857  0.0069893  -4.576 1.09e-05 ***
+#&gt; fourier(K = 6)C5_12  0.0059083  0.0069900   0.845  0.39951    
+#&gt; fourier(K = 6)S5_12 -0.0212636  0.0069891  -3.042  0.00284 ** 
+#&gt; fourier(K = 6)C6_12 -0.0029362  0.0049423  -0.594  0.55347    
+#&gt; ---
+#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#&gt; 
+#&gt; Residual standard error: 0.0593 on 131 degrees of freedom
+#&gt; Multiple R-squared: 0.9835,	Adjusted R-squared: 0.982
+#&gt; F-statistic: 649.4 on 12 and 131 DF, p-value: &lt; 2.22e-16
+```
+]
+
+---
+
+# Useful predictors
+
+&lt;img src="010-dynamic-reg_files/figure-html/unnamed-chunk-23-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: inverse, middle
+
+# ARIMA errors
+
+---
+
+# ARIMA errors
+
+In case we have evidence of residual serial correlation, we may write a time-series regression model as follows:
+
+--
+
+$$
+`\begin{aligned}
+y_t = \beta_0 + \beta_1x_{1t} + \beta_2x_{2t} + \cdot \cdot \cdot + \beta_kx_{kt} + \eta_t   
+\end{aligned}`
+$$
+
+&lt;br&gt;
+
+where `\(\eta_t\)` is assumed to be .hi-orange[autocorrelated], and follows an .hi-slate[ARIMA] process.
+
+--
+
+For instance, if `\(\eta_t\)` follows an .b[ARIMA(1, 1, 1)] process, it can be expressed as
+
+$$
+`\begin{aligned}
+\eta_t' = c + \phi_1\eta_{t-1}' + \theta_1\varepsilon_{t-1} + \varepsilon_t   
+\end{aligned}`
+$$
+
+where `\(\varepsilon_t\)` follows a white-noise process.
+
+
+
+---
+
+# ARIMA errors
+
+&lt;br&gt;
+
+Now, the model has .hi-slate[two error terms]:
+
+&lt;br&gt;
+
+--
+
+  1. The error from the *regression model*, which we denote by `\(\eta_t\)`; and
+  
+  2. The error term from the *ARIMA* model, which we denote by `\(\varepsilon_t\)`.
+
+--
+
+&lt;br&gt;&lt;br&gt;
+
+Only `\(\varepsilon_t\)` is assumed to be white noise here.
+
+
+---
+
+# ARIMA errors
+
+Whenever a regression's .hi-slate[error term] shows .hi-orange[serial correlation], several problems arise:
+
+--
+
+  - As relevant information is left to the error term, the model is **not well specified**;
+  
+    - ***Autocorrelation is information!***
+    
+  - Inference is unreliable;
+  
+    - *p-values*, *t-statistics* are **biased**.
+    
+--
+
+&lt;br&gt;
+
+Therefore, applying .hi-red[Ordinary Least Squares] (OLS) estimation in models with residual autocorrelation is .hi-blue[problematic].
+
+--
+
+
+Instead, we should .hi-slate[model] the autocorrelations in the residual term, so we incorporate such information into our modeling/forecasting.
+
+  
+
+
+---
+
+# ARIMA errors
+
+An important .hi-orange[consideration] when estimating a regression with *ARIMA errors* is that all of the variables in the model must first be .hi-blue[stationary].
+
+--
+
+Thus, running a unit-root test (such as KPSS) is .hi[mandatory].
+
+--
+
+One .hi[common practice] is to difference .hi-red[*all*] regression variables if .hi-red[*any*] of them is *non-stationary*.
+
+--
+
+  - The resulting model is then called a “*model in differences*.”
+
+--
+
+&lt;br&gt;
+
+On the other hand, a "*model in levels*" denotes a regression with all included variables being stationary *without* any transformation needed.
+
+---
+
+# ARIMA errors
+
+In .mono[R], the `{fable}` package handles dynamic regression models with the `ARIMA()` function.
+
+--
+
+For example, the code
+
+
+```r
+ARIMA(y ~ x + pdq(1,1,0))
+```
+
+fits a dynamic regression for *y_t*, controlling for one exogenous variable `\((x_t)\)`, assuming that the residual term `\(\eta_t\)` follows an .b[ARIMA(1, 1, 0)] process.
+
+--
+
+&lt;br&gt;
+
+  - Let us write out this model.
+  
+
+
+
+
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: More on dynamic regression
+
+---
+exclude: true
+
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"ratio": "16:9",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
