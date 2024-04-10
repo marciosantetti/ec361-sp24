@@ -131,6 +131,13 @@ Welcome to EC 361&mdash;001: Applied Macroeconomic Forecasting!<br>
 
 <br>
 
+
+**017: Dynamic regression models: Introduction**
+
+  - Slides: [`html`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/010-dyn-reg/010-dynamic-reg.html) | [`pdf`](https://raw.githack.com/marciosantetti/ec361-sp24/main/lectures/010-dyn-reg/010-dynamic-reg.pdf)
+
+<br>
+
 ## Applied lectures
 
 <br>
@@ -175,6 +182,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable",
 
   - [`Part 1`](https://youtu.be/agEy_EHCKyo)
   - [`Part 2`](https://youtu.be/AK9QrnKr9Zw)
+
+<br>
+
+**005: ARIMA models**
+
+  - [`Part 1`](https://youtu.be/VQaesZQNX4U)
+  - [`Part 2`](https://youtu.be/lkcRg1XkrSo)
 
 
 <br>
