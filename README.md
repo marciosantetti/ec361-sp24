@@ -200,6 +200,9 @@ install.packages(c("janitor", "feasts", "tsibble", "fable",
 - ~~[`Problem Set 0`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps0-ec361-sp24.pdf) (due 02/16, 12:20 PM)~~
 - ~~[`Problem Set 1`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps1-ec361-sp24%20copy.pdf) (due 03/01, 12:20 PM)~~
 - ~~[`Problem Set 2`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps2-ec361-sp24.pdf) (due 03/22, 12:20 PM)~~
+- [`Problem Set 3`](https://raw.githack.com/marciosantetti/ec361-sp24/main/problem-sets/ps3-ec361-sp24.pdf) (due 04/26, 12:20 PM)
+
+- [`In-class practice: 04/12`](https://github.com/marciosantetti/ec361-sp24/blob/main/problem-sets/practice-04-12.md)
 
 
 <br>
