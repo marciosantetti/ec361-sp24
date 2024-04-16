@@ -1,0 +1,552 @@
+---
+title: ".b[Dynamic regression models: Estimation & forecasting]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3, MetBrewer)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 8,
+  fig.width = 12.5,
+  warning = F,
+  dev = "svg",
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br>
+
+.b[Required readings]:
+
+<br>
+
+
+  - [`Hyndman & Athanasopoulos, ch. 10`](https://otexts.com/fpp3/dynamic.html)
+  
+    - sections 10.1&mdash;10.3.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+<br>
+
+Last time, the .hi[intuition] behind the use of ARIMA errors in time-series regression was introduced.
+
+<br>
+
+Now, our task is to employ the .hi-red[estimation] and .hi-blue[forecasting] steps using this methodology.
+
+--
+
+<br>
+
+we will do this through an .hi-slate[example].
+
+---
+class: inverse, middle
+
+# An example: Phillips curve
+
+---
+
+# An example: Phillips curve
+
+In .hi[Macroeconomic theory], .hi-red[inflationary] pressures can arise due to and lower .hi-blue[unemployment].
+
+--
+
+   - This association is summarized by the *Phillips curve*.
+
+--
+
+One of its many variations is the so-called .hi-blue[*accelerationist*] Phillips curve, especially for *unstable* scenarios.
+
+--
+
+For statistical .hi-slate[modeling] purposes, the usual way to represent this relationship is the following:
+
+<br>
+
+$$
+\begin{aligned}
+\Delta \pi_t = \beta_0 + \beta_1u_t + \varepsilon_t
+\end{aligned}
+$$
+
+
+
+--
+
+where $\Delta \pi_t$ is the *change in the inflation rate*, and $u_t$ is the *unemployment rate*.
+
+--
+
+It is expected that the .hi-red[slope], here represented by $\beta_1$, is .hi-blue[negative], as higher employment is expected to generate *inflationary pressures*.
+
+
+
+---
+
+# An example: Phillips curve
+
+```{r, echo=F}
+
+
+dat <- read_csv("ps1_data.csv")
+
+
+phillips_ts <- dat |> 
+  mutate(date = floor_date(period, unit = "year")) |> 
+  group_by(date) |> 
+  summarize(infrate = mean(infrate),
+            unrate = mean(unrate)) 
+
+
+phillips_ts <- phillips_ts |> 
+  mutate(date = year(date)) |> 
+  as_tsibble(index = date)
+
+phillips_ts <- phillips_ts |> 
+  mutate(delta_infrate = difference(infrate, lag = 1))
+
+##
+
+
+phillips_ts |> 
+  autoplot(unrate) +
+  labs(title = "U.S. annual unemployment rate",
+       subtitle = "1960—2023",
+       y = "%",
+       x = "",
+       caption = "Source: U.S. Bureau of Labor Statistics.") +
+  easy_y_axis_title_size(13) +
+  easy_plot_caption_size(13)
+
+
+```
+
+
+---
+
+# An example: Phillips curve
+
+
+```{r, echo=F}
+phillips_ts |> 
+  autoplot(delta_infrate) +
+  labs(title = "U.S. annual change in inflation rate (CPI)",
+       subtitle = "1960—2023",
+       y = "Change (p.p.)",
+       x = "",
+       caption = "Source: U.S. Bureau of Labor Statistics.") +
+  easy_y_axis_title_size(13) +
+  easy_plot_caption_size(13)
+```
+
+
+
+---
+
+# An example: Phillips curve
+
+- Are the two variables .hi-slate[stationary]?
+
+```{r}
+phillips_ts |> 
+  features(unrate, unitroot_kpss)
+
+
+phillips_ts |> 
+  features(delta_infrate, unitroot_kpss)
+```
+
+
+
+---
+
+# An example: Phillips curve
+
+Let us first estimate a .hi-red[standard] time-series regression model, using the `TSLM()` function.
+
+--
+
+.smaller[
+```{r}
+phillips_reg <- phillips_ts |> 
+  model(reg = TSLM(delta_infrate ~ unrate))
+
+phillips_reg |> 
+  report()
+```
+]
+
+
+---
+
+# An example: Phillips curve
+
+
+```{r, echo=F}
+
+phillips_ts |> 
+  ggplot(aes(x = unrate, y = delta_infrate)) +
+  geom_point(size = 2.5, shape = 21) +
+  geom_smooth(method = "lm", se=F, color = turquoise) +
+  labs(x = "Unemployment rate",
+       y = "Change in inflation rate") +
+  geom_hline(yintercept = 0, linetype = 2) +
+  easy_y_axis_title_size(13) +
+  easy_x_axis_title_size(13)
+
+```
+
+
+
+---
+class: clear
+
+- And now we check the regression's residual term, $\hat{\varepsilon}_t$:
+
+.smaller[
+```{r, fig.height=5}
+phillips_reg |> 
+  augment() |> 
+  select(.innov) |> 
+  autoplot() +
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_point() +
+  labs(y = "Residual term",
+       x = "") +
+  easy_y_axis_title_size(13)
+```
+]
+
+---
+
+# An example: Phillips curve
+
+```{r, echo=F}
+phillips_reg |> 
+  augment() |> 
+  ACF(.innov) |> 
+  autoplot() +
+  labs(title = "Residuals: ACF plot")
+```
+
+
+---
+
+# An example: Phillips curve
+
+```{r, echo=F}
+phillips_reg |> 
+  augment() |> 
+  PACF(.innov) |> 
+  autoplot() +
+  labs(title = "Residuals: PACF plot")
+```
+
+
+---
+
+# An example: Phillips curve
+
+- Testing for .hi-slate[residual autocorrelation]:
+
+
+```{r}
+phillips_reg |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 10)
+```
+
+
+--
+
+<br>
+
+What do we conclude?
+
+
+
+---
+
+# An example: Phillips curve
+
+
+When the residual term of a regression shows evidence of .hi-slate[serial correlation (autocorrelation)], inference is .hi-red[unreliable].
+
+--
+
+<br>
+
+For .hi-blue[forecasting] purposes, *prediction intervals* will be incorrect.
+
+--
+
+
+<br>
+
+Therefore, we must .hi-slate[incorporate] the autocorrelation in the residuals into our regression model.
+
+--
+
+  - This is done through an **ARIMA modeling** of this term.
+  
+
+
+---
+
+# An example: Phillips curve
+
+<br>
+
+As the two model variables are .hi-blue[stationary], *no differencing* is required.
+
+--
+
+<br>
+
+For .hi-red[ARIMA residuals], we can use the `ARIMA()` function in a regression context.
+
+--
+
+<br>
+
+```{r}
+phillips_arima <- phillips_ts |> 
+  model(arima_reg = ARIMA(delta_infrate ~ unrate))
+```
+
+
+---
+
+# An example: Phillips curve
+
+
+
+```{r}
+phillips_arima <- phillips_ts |> 
+  model(arima_reg = ARIMA(delta_infrate ~ unrate))
+```
+
+--
+
+```{r}
+phillips_arima |> 
+  report()
+```
+
+--
+
+
+Let us .hi-slate[write out] the estimated model.
+
+
+---
+
+# An example: Phillips curve
+
+
+```{r, echo=F}
+phillips_arima |> 
+  augment() |> 
+  ggplot(aes(x = date, y = delta_infrate)) +
+  geom_line(aes(color = "Change in inflation rate")) +
+  geom_line(aes(y = .fitted, color = "Fitted values"), linewidth = .8) +
+  scale_color_manual(values = c("#2a5fac", "#ec5c11")) +
+  easy_legend_at("top") +
+  easy_add_legend_title("")  +
+  easy_plot_legend_size(13) +
+  labs(y = "Change in inflation rate",
+       x = "") +
+  easy_y_axis_title_size(13)
+
+```
+
+
+---
+
+# An example: Phillips curve
+
+```{r, echo=F}
+phillips_arima |> 
+  augment() |> 
+  ACF(.innov) |> 
+  autoplot() +
+  labs(title = "Residuals: ACF plot")
+```
+
+---
+
+# An example: Phillips curve
+
+```{r, echo=F}
+phillips_arima |> 
+  augment() |> 
+  PACF(.innov) |> 
+  autoplot() +
+  labs(title = "Residuals: PACF plot")
+```
+
+---
+
+# An example: Phillips curve
+
+- Testing for serial correlation:
+
+
+```{r}
+phillips_arima |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 10)
+
+```
+
+
+--
+
+<br>
+
+What do we conclude?
+
+---
+class: middle, inverse
+
+# Forecasting
+
+---
+
+# Forecasting
+
+When estimating dynamic regression models with .hi-slate[ARIMA errors], we need to forecast the regression part of the model and the ARIMA part of the model, and .hi-red[combine] the results. 
+
+
+--
+
+When the independent variables are .hi-slate[known] into the future (e.g., *seasonal dummy variables*, *trend* component), their future values are *known.*
+
+--
+
+However, when this is .b[not] the case, the usual approach is to .hi-blue[assume future values] for each predictor variable.
+
+--
+
+<br>
+
+In the case of our Phillips curve example, it is .hi-red[impossible] to know the unemployment rate in the future.
+
+--
+
+  - Thus, we need to make *assumptions.*
+
+---
+
+# Forecasting
+
+
+For our example, suppose our forecast horizon is *h = 5* years.
+
+--
+
+We may assume that the unemployment rate for this future years will be equal to its .hi-slate[historical mean].
+
+--
+
+<br>
+
+```{r}
+phillips_new_data <- new_data(phillips_ts, n = 5) |> 
+  mutate(unrate = mean(phillips_ts$unrate))
+```
+
+--
+
+<br>
+
+
+```{r}
+phillips_fc <- phillips_arima |> 
+  forecast(h = 5, new_data = phillips_new_data)
+```
+
+
+
+---
+class: clear
+
+.smaller[
+```{r, fig.height=7}
+phillips_fc |> 
+  autoplot(phillips_ts, level = 95) +
+  labs(title = "5-year ahead forecast",
+       subtitle = "Dynamic regression with ARIMA(0, 0, 2) errors",
+       y = "Change in inflation rate", x = "")
+```
+]
+
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Final thoughts on dynamic regression models
+
+---
+exclude: true
