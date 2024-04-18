@@ -1,0 +1,597 @@
+---
+title: ".b[Dynamic regression models: Further thoughts]"
+subtitle: ".b[.green[EC 361--001]]"
+author: "Prof. Santetti"
+date: "Spring 2024"
+output:
+  xaringan::moon_reader:
+    css: ['default', 'metropolis', 'metropolis-fonts', 'skid-css.css']
+    # self_contained: true
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      ratio: "16:9"
+      countIncrementalSlides: false
+---
+
+
+```{r Setup, include = F}
+options(htmltools.dir.version = FALSE)
+library(pacman)
+p_load(broom, latex2exp, ggplot2, ggthemes, ggforce, viridis, dplyr, magrittr, knitr, parallel, xaringanExtra, tidyverse, sjPlot, showtext, mathjaxr, ggforce, furrr, kableExtra, wooldridge, hrbrthemes, scales, ggeasy, patchwork, janitor, tsibble, lubridate, fpp3, MetBrewer)
+
+
+
+
+# Knitr options
+opts_chunk$set(
+  comment = "#>",
+  fig.align = "center",
+  fig.height = 8,
+  fig.width = 12.5,
+  warning = F,
+  dev = "svg",
+  message = F,
+  dpi=300
+)
+
+theme_set(theme_ipsum_rc())
+
+```
+
+```{R, colors, include = F}
+# Define pink color
+red_pink <- "#e64173"
+turquoise <- "#20B2AA"
+orange <- "#FFA500"
+red <- "#E02C05"
+blue <- "#2b59c3"
+green <- "#0FDA6D"
+grey_light <- "grey70"
+grey_mid <- "grey50"
+grey_dark <- "grey20"
+purple <- "#6A5ACD"
+```
+
+
+
+
+
+
+# Materials
+
+<br>
+
+.b[Required readings]:
+
+<br>
+
+
+  - [`Hyndman & Athanasopoulos, ch. 10`](https://otexts.com/fpp3/dynamic.html)
+  
+    - sections 10.3; 10.5.
+    
+
+
+---
+class: inverse, middle
+
+# Motivation
+
+
+---
+
+# Motivation
+
+<br><br><br>
+
+
+After studying the .hi-orange[essentials] of *dynamic regression* models, let us wrap up this topic with a few more .hi-red[practical issues].
+
+---
+class: inverse, middle
+
+# Harmonic regression with ARIMA errors
+
+---
+
+# Harmonic regression with ARIMA errors
+
+
+We have already seen that .hi[harmonic regression] (i.e., using *Fourier* terms) performs well for modeling .hi-red[seasonality].
+
+--
+
+  - Especially *long* seasonal periods (*weekly* and *monthly* seasonal data, for example).
+  
+--
+
+<br>
+
+One .hi-red[limitation], however, is that harmonic regression assumes that the seasonal component is .hi-blue[fixed] over time (i.e., its variance is constant).
+
+--
+
+With this in mind, harmonic regression is a *useful tool* for seasonal time series.
+
+<br>
+
+--
+
+*Fourier terms* can be used .hi-slate[along with] *ARIMA errors* to capture several important dynamics of the time series at hand.
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+```{r, echo=F}
+air <- read_csv("air_passengers.csv")
+
+
+air_ts <- air |> 
+  mutate(date = yearmonth(date)) |> 
+  as_tsibble(index = date)
+
+air_ts |> 
+  ggplot(aes(x = date, y = passengers)) +
+  geom_line() +
+  labs(title = "International airline passengers",
+       subtitle = "Jan 1949 – Dec 1960",
+       caption = "Source: Brown (1962).",
+       x = "",
+       y = "Thousands") +
+  easy_y_axis_title_size(14) +
+  easy_plot_caption_size(14)
+```
+
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+- Let us start a forecasting exercise for the .hi-slate[air passengers] data set with a *straightforward* regression model. 
+
+--
+
+<br>
+
+```{r}
+air_tslm <- air_ts |> 
+  model(reg = TSLM(log(passengers) ~ trend() + season()))
+```
+
+
+
+---
+class: clear
+
+
+
+.smallest[
+```{r}
+air_tslm |> 
+  report()
+```
+]
+
+
+---
+class: clear
+
+
+.smaller[
+```{r, fig.height=7.5}
+air_tslm |> 
+  augment() |> 
+  gg_tsdisplay(.innov, plot_type = "partial")
+```
+]
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+- Testing for .hi-slate[residual serial correlation]:
+
+```{r}
+
+air_tslm |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 2 * 12)
+```
+
+
+<br>
+
+What do we conclude?
+---
+
+
+# Harmonic regression with ARIMA errors
+
+Moving on to a model with .hi-blue[ARIMA errors]:
+
+<br>
+
+```{r}
+air_arima <- air_ts |> 
+  model(arima_errors = ARIMA(log(passengers) ~ trend() + season() + PDQ(0, 0, 0))) # setting PDQ() with zeros, as
+                                                                                   # the "season()" function is
+                                                                                   # taking care of seasonality.
+```
+
+
+---
+class: clear
+
+.smallest[
+```{r}
+air_arima |>
+  report()
+```
+
+]
+
+
+
+---
+class: clear
+
+
+.smaller[
+```{r, fig.height=7.5}
+air_arima |> 
+  augment() |> 
+  gg_tsdisplay(.innov, plot_type = "partial")
+```
+]
+
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+- Testing for .hi-slate[residual serial correlation]:
+
+```{r}
+air_arima |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 2 * 12)
+```
+
+
+<br>
+
+What do we conclude?
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+In case we forecast the time series at hand based on a model *with residual serial correlation*, .hi-blue[prediction intervals] will be .hi-red[unreliable].
+
+--
+
+```{r}
+air_arima |> 
+  forecast(h = 24) |> 
+  head(6)
+```
+
+
+---
+class: clear
+
+.smaller[
+```{r}
+air_arima |> forecast(h = 24) |> autoplot(air_ts, level = 95, linewidth = .8) + labs(x = "")
+```
+]
+
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+So far, we have not been successful in coming up with a *reliable* .hi-slate[regression forecast model] for the air passengers data set.
+
+--
+
+An *alternative* for modeling seasonality is using .hi-red[harmonic regression] .hi-slate[with ARIMA errors].
+
+--
+
+<br>
+
+
+```{r}
+air_harmonic_fit <- model(air_ts,
+              K1 = ARIMA(log(passengers) ~ fourier(K = 1) + PDQ(0, 0, 0)),
+              K2 = ARIMA(log(passengers) ~ fourier(K = 2) + PDQ(0, 0, 0)),
+              K3 = ARIMA(log(passengers) ~ fourier(K = 3) + PDQ(0, 0, 0)),
+              K4 = ARIMA(log(passengers) ~ fourier(K = 4) + PDQ(0, 0, 0)),
+              K5 = ARIMA(log(passengers) ~ fourier(K = 5) + PDQ(0, 0, 0)),
+              K6 = ARIMA(log(passengers) ~ fourier(K = 6) + PDQ(0, 0, 0)))
+
+```
+
+<br>
+
+Recall that *K*, the number of Fourier sine and cosine pairs, can vary from *K = 1* up to *K = m/2*.
+
+
+---
+class: clear
+
+```{r, echo=F, fig.height = 9, fig.width=15}
+air_harmonic_fit |>
+  forecast(h = 24) |>
+  autoplot(air_ts, level = 95) +
+  facet_wrap(vars(.model), ncol = 2) +
+  guides(colour = "none", fill = "none", level = "none") +
+  geom_label(aes(x = yearmonth("1953 Jan"), y = 700, label = paste0("AICc = ", format(AICc))),
+    data = glance(air_harmonic_fit)) +
+  labs(title= "U.S. air passengers: 24-month ahead forecast",
+       y="Thousands",
+       x = "")
+
+```
+
+
+
+
+
+
+---
+class: clear
+
+
+.smallest[
+```{r, fig.height=7}
+
+air_harmonic_fit |> 
+  select(K6) |> 
+  augment() |> 
+  gg_tsdisplay(.innov, plot_type = "partial")
+```
+]
+
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+
+
+.pull-left[
+.small[
+```{r}
+air_harmonic_fit |> 
+  select(K6)
+```
+
+
+```{r}
+air_harmonic_fit |> 
+  select(K5)
+```
+]]
+
+
+.pull-right[
+.small[
+```{r}
+air_harmonic_fit |> 
+  select(K6) |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 2 * 12, dof = 2)
+```
+
+
+```{r}
+air_harmonic_fit |> 
+  select(K5) |> 
+  augment() |> 
+  features(.innov, ljung_box, lag = 2 * 12, dof = 2)
+```
+]]
+
+
+
+
+---
+
+
+# Harmonic regression with ARIMA errors
+
+```{r, echo=F}
+air_harmonic_fit |> 
+  select(K5) |> 
+  forecast(h = 24) |> 
+  autoplot(air_ts, level = 95, color = "#3c3b6e", linewidth = .8) +
+  labs(title = "24-month ahead forecast (Dynamic harmonic regression, K = 5)",
+       subtitle = "U.S. air passengers data",
+       x = "",
+       y = "Thousands") +
+  easy_y_axis_title_size(13)
+```
+
+
+---
+class: inverse, middle
+
+# Scenario-based forecasting
+
+
+---
+
+
+# Scenario-based forecasting
+
+When using .hi-slate[regression] models for forecasting, the time series we are interested in forecasting is a .hi[function] of one or more .hi-blue[predictor variables].
+
+--
+
+<br>
+
+Excluding variables we .hi-blue[do know] their future values (e.g., *trend* and *seasonal dummy* variables), we must .hi-slate[make assumptions] about other predictors for which we .hi-red[do not have] information.
+
+--
+
+<br>
+
+This allows us to assume different .hi-slate[scenarios] for the *predictor variables* that are of interest.
+
+--
+
+<br>
+
+Let us come back to our .hi-red[Phillips curve] example.
+
+
+
+---
+
+
+# Scenario-based forecasting
+
+```{r, echo=F, message=F, warning=F}
+dat <- read_csv("ps1_data.csv")
+
+
+phillips_ts <- dat |> 
+  mutate(date = floor_date(period, unit = "year")) |> 
+  group_by(date) |> 
+  summarize(infrate = mean(infrate),
+            unrate = mean(unrate)) 
+
+
+phillips_ts <- phillips_ts |> 
+  mutate(date = year(date)) |> 
+  as_tsibble(index = date)
+
+phillips_ts <- phillips_ts |> 
+  mutate(delta_infrate = difference(infrate, lag = 1))
+
+```
+
+
+
+
+
+
+```{r}
+
+phillips_arima <- phillips_ts |> 
+  model(arima_reg = ARIMA(delta_infrate ~ unrate))
+```
+
+
+--
+
+<br>
+
+We will assume .b[3] possible .hi-blue[forecasting scenarios]:
+
+<br>
+
+1. The unemployment rate follows its historical *average value* (5.9%);
+
+2. The unemployment rate *increases* to 10%;
+
+3. The unemployment rate follows its *current value* of 3.36%.
+
+---
+
+
+# Scenario-based forecasting
+
+<br>
+
+
+```{r}
+future_scenarios <- scenarios(average = new_data(phillips_ts, n = 5) |> 
+                                mutate(unrate = mean(phillips_ts$unrate)),
+                              pessimistic = new_data(phillips_ts, n = 5) |> 
+                                mutate(unrate = 10),
+                              optimistic = new_data(phillips_ts, n = 5) |> 
+                                mutate(unrate = 3.36))
+```
+
+
+--
+
+<br>
+
+
+```{r}
+phillips_scen_fc <- phillips_arima |> 
+  forecast(h = 5, new_data = future_scenarios)
+```
+
+
+---
+class: clear
+
+.smallest[
+```{r, fig.height=7.5}
+phillips_ts |> 
+  autoplot(delta_infrate) +
+  autolayer(phillips_scen_fc |> filter(.scenario == "average"), level = 95, color = "#4682b4", linewidth = .8) +
+  labs(title = "Average scenario")
+```
+]
+
+
+---
+class: clear
+
+.smallest[
+```{r, fig.height=7.5}
+phillips_ts |> 
+  autoplot(delta_infrate) +
+  autolayer(phillips_scen_fc |> filter(.scenario == "pessimistic"), level = 95, color = "#800020", linewidth = .8) +
+  labs(title = "Pessimistic scenario")
+```
+]
+
+
+---
+class: clear
+
+.smallest[
+```{r, fig.height=7.5}
+phillips_ts |> 
+  autoplot(delta_infrate) +
+  autolayer(phillips_scen_fc |> filter(.scenario == "optimistic"), level = 95, color = "#228b22", linewidth = .8) +
+  labs(title = "Optimistic scenario")
+```
+]
+
+---
+class: clear
+
+```{r, echo=F, fig.height=9}
+phillips_ts |> 
+  autoplot(delta_infrate) +
+  autolayer(phillips_scen_fc, level = NULL, linewidth = 0.8) +
+  scale_color_manual(values= c("#4682b4", "#800020", "#228b22")) +
+  labs(title = "All 3 scenarios")
+```
+
+
+---
+layout: false
+class: inverse, middle
+
+# Next time: Applications
+
+---
+exclude: true
