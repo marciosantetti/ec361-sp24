@@ -202,6 +202,13 @@ install.packages(c("janitor", "feasts", "tsibble", "fable",
   - [`Part 1`](https://youtu.be/VQaesZQNX4U)
   - [`Part 2`](https://youtu.be/lkcRg1XkrSo)
 
+<br>
+
+**006: Dynamic regression models**
+
+  - [`Part 1`](https://youtu.be/xUvDpnCxZA0)
+  - [`Part 2`](https://youtu.be/PRnhVv_2ay0)
+
 
 <br>
 
