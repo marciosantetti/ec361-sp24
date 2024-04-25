@@ -45,5 +45,5 @@ Moving on to the **houses sold** data:
 - Come up with possible ARIMA model specifications
 - Select the best ARIMA model, minimizing the AICc criterion;
 - Check the selected model's residuals;
-- Compute a 24-month ahead forecast and graph it;
+- Compute a 24-month ahead forecast and graph it.
 
