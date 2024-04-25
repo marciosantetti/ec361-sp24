@@ -57,8 +57,8 @@ car_fit <- car_ts |>
         `K = 2` = ARIMA(log(cars) ~ fourier(K=2) + PDQ(0,0,0)),
         `K = 3` = ARIMA(log(cars) ~ fourier(K=3) + PDQ(0,0,0)),
         `K = 4` = ARIMA(log(cars) ~ fourier(K=4) + PDQ(0,0,0)),
-        `K = 5` = ARIMA(log(cars) ~ fourier(K=5) + PDQ(0,0,0)),
-        `K = 6` = ARIMA(log(cars) ~ fourier(K=6) + PDQ(0,0,0)))
+        `K = 5` = ARIMA(log(cars) ~ trend() + fourier(K=5)),
+        `K = 6` = ARIMA(log(cars) ~ trend() + fourier(K=6)))
 
 car_fit |> 
   forecast(h = 24) |> 
@@ -78,9 +78,9 @@ car_fit |>
 
 
 car_fit |> 
-  select(`K = 6`) |> 
+  select(`K = 5`) |> 
   augment() |> 
-  features(.innov, ljung_box, lag = 2 * 12, dof = 2)
+  features(.innov, ljung_box, lag = 2 * 12, dof = 4)
 
 
 
